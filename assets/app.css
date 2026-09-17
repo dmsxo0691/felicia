@@ -122,22 +122,30 @@ textarea{resize:vertical;min-height:140px;line-height:1.7}
 .wr-words{display:flex;flex-wrap:wrap;gap:8px 10px;justify-content:center;margin:20px 0 0}
 .wr-words span{border:1px solid var(--line-2);border-radius:999px;padding:5px 15px;font-size:14px;color:var(--gold-soft)}
 .wr-nav{display:flex;align-items:center;justify-content:center;gap:16px;flex-wrap:wrap}
-/* 점은 다시 그리지 않고 클래스만 바뀌므로 전환이 걸린다.
-   현재 위치는 막대로 늘어나고, 새로 생긴 점은 옆에서 커지며 들어온다. */
-.wr-dots{display:flex;gap:6px;align-items:center;justify-content:center;min-height:6px}
+/* 점은 전부 만들어 두고 띠를 움직인다. 좁은 창으로 잘라서 세 개 남짓만 보이고,
+   넘길 때마다 띠가 미끄러지며 현재 점이 가운데로 와서 막대로 늘어난다. */
+.wr-dots{
+  width:76px;height:22px;flex:none;overflow:hidden;
+  display:flex;align-items:center;
+  -webkit-mask-image:linear-gradient(90deg,transparent,#000 26%,#000 74%,transparent);
+  mask-image:linear-gradient(90deg,transparent,#000 26%,#000 74%,transparent);
+}
+.wr-dots .track{
+  display:flex;align-items:center;gap:6px;
+  transition:transform .38s cubic-bezier(.4,0,.2,1);will-change:transform;
+}
 .wr-dots i{
-  width:6px;height:6px;border-radius:999px;display:block;
+  width:6px;height:6px;border-radius:999px;flex:none;
   background:rgba(248,216,112,.26);   /* 먹색 배경에서 --ink-3 은 거의 안 보인다 */
-  transition:width .34s cubic-bezier(.4,0,.2,1), background .34s ease, opacity .28s ease, transform .28s ease;
+  transition:width .34s cubic-bezier(.4,0,.2,1), background .34s ease;
 }
 .wr-dots i.on{width:22px;background:var(--gold)}
-.wr-dots i.enter{opacity:0;transform:scale(.4)}
 
 .fadein{animation:fade .5s ease both}
 @keyframes fade{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:none}}
 @media (prefers-reduced-motion:reduce){
   .fadein{animation:none}
-  .wr-dots i{transition:none}
+  .wr-dots i,.wr-dots .track{transition:none}
 }
 
 /* ---------- 통계 리스트 ---------- */

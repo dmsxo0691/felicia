@@ -255,33 +255,31 @@
     return '<div class="wr-slide fadein">' + html + "</div>";
   }
 
-  /** 진행 점은 전부 찍지 않고 현재 위치 둘레만 보여준다.
-      가운데에서는 3개(앞·현재·뒤), 처음과 마지막에서는 2개. */
-  function dotWindow(idx, total) {
-    if (total <= 1) return { start: 0, end: 0 };
-    let start = idx - 1, end = idx + 1;
-    if (idx === 0) { start = 0; end = 1; }
-    else if (idx === total - 1) { start = total - 2; end = total - 1; }
-    return { start: Math.max(0, start), end: Math.min(total - 1, end) };
-  }
+  /* 진행 점 — 점을 3개만 만들어 두면 중간 구간에서는 활성 점이 늘 가운데라
+     클래스 배치가 매번 같아지고, 바뀌는 게 없으니 전환도 걸리지 않는다.
+     그래서 점은 전부 만들어 두고 띠를 움직여 현재 점을 가운데로 데려온다.
+     보이는 창은 좁게 잘라 두므로 화면에는 세 개 남짓만 보인다. */
+  const DOT = 6, DOT_ON = 22, DOT_GAP = 6;
 
-  /** 점을 다시 만들지 않고 있는 것을 재사용해 클래스만 바꾼다.
-      그래야 CSS 전환이 걸려서 활성 점이 막대로 늘어나는 게 보인다. */
   function paintDots(el, idx, total) {
     if (!el) return;
     if (total <= 0) { el.innerHTML = ""; return; }
-    const w = dotWindow(idx, total);
-    const need = w.end - w.start + 1;
-    while (el.children.length > need) el.lastElementChild.remove();
-    while (el.children.length < need) {
-      const i = document.createElement("i");
-      i.className = "enter";
-      el.appendChild(i);
-      requestAnimationFrame(() => i.classList.remove("enter"));
+
+    let track = el.firstElementChild;
+    if (!track || !track.classList.contains("track")) {
+      el.innerHTML = "";
+      track = document.createElement("div");
+      track.className = "track";
+      el.appendChild(track);
     }
-    for (let k = 0; k < need; k++) {
-      el.children[k].classList.toggle("on", w.start + k === idx);
-    }
+    while (track.children.length > total) track.lastElementChild.remove();
+    while (track.children.length < total) track.appendChild(document.createElement("i"));
+    for (let i = 0; i < total; i++) track.children[i].classList.toggle("on", i === idx);
+
+    /* 폭이 전환 중이라 offsetLeft 를 읽으면 중간값이 나온다. 목표 배치를 직접 계산한다. */
+    const center = idx * (DOT + DOT_GAP) + DOT_ON / 2;
+    const view = el.clientWidth || 76;
+    track.style.transform = "translateX(" + Math.round(view / 2 - center) + "px)";
   }
 
   /* 슬라이드 뷰어 하나를 붙인다. 반환된 객체로 넘기고 되돌린다. */
