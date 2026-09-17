@@ -32,8 +32,9 @@
   const ENDPOINT = "";
 
   /* 로고 이미지 안에서 원형 링이 차지하는 위치 (이미지 크기에 대한 비율).
+     logo.png 픽셀에서 실측한 값입니다 — 로고를 교체하면 다시 측정해야 합니다.
      지문 링이 로고 원과 어긋나 보이면 이 세 값만 조정하면 됩니다. */
-  const LOGO_GEOM = { cx: 0.505, cy: 0.372, r: 0.265 };
+  const LOGO_GEOM = { cx: 0.4985, cy: 0.3770, r: 0.2712 };
   const LOGO_BOX = { w: 0.66, top: 0.085 };   // 캔버스 대비 로고 배치
 
   /* ======================================================================
@@ -411,7 +412,7 @@
     g.fillText("F", cx, cy + R * 0.02);
     g.font = '400 ' + (box * 0.086) + 'px "Cormorant Garamond", serif';
     g.letterSpacing = (box * 0.055).toFixed(1) + "px";
-    g.fillText("FELICIA", cx + box * 0.027, top + box * 0.82);
+    g.fillText("FELICIA", cx + box * 0.028, top + box * 0.8035);
     g.letterSpacing = "0px";
     g.restore();
   }
@@ -427,7 +428,7 @@
     const S = cv.width;
     const onCream = bg !== "ink";
     const ground = onCream ? "#F6F1E3" : "#14120D";
-    const fg = onCream ? "#C9A639" : "#F2CF5B";
+    const fg = onCream ? "#C6A33A" : "#F8D870";
     const txt = onCream ? "#3B3629" : "#E8E1CC";
 
     g.setTransform(1, 0, 0, 1, 0, 0);
@@ -505,10 +506,8 @@
 
     // (4) 로고를 그 위에 — 지문은 로고 뒤에 깔린다
     if (logo.img) {
-      g.save();
-      if (onCream) g.globalCompositeOperation = "multiply";   // 흰 배경 로고를 아이보리에 녹인다
+      // logo.png 는 배경이 투명하므로 그대로 얹으면 원래 금색이 살아난다.
       g.drawImage(logo.img, left, top, box, box);
-      g.restore();
     } else {
       drawFallbackMark(g, S, fg);
     }
@@ -548,7 +547,7 @@
     c.width = c.height = 800;
     const g = c.getContext("2d");
     g.clearRect(0, 0, 800, 800);
-    drawFallbackMark(g, 800, "#F2CF5B");
+    drawFallbackMark(g, 800, "#F8D870");
     el.innerHTML = "";
     el.appendChild(c);
   }

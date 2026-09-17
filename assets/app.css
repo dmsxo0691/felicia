@@ -2,9 +2,10 @@
    어두운 방에서 함께 보는 화면. 로고의 금색(#F2CF5B)을 기준으로 단일 테마 확정. */
 
 :root{
-  --gold:#F2CF5B;
-  --gold-soft:#F8E7AC;
-  --gold-deep:#A8801F;
+  /* logo.png 획에서 실측한 금색 (#F8D870) 을 그대로 기준색으로 씁니다. */
+  --gold:#F8D870;
+  --gold-soft:#FBE9B4;
+  --gold-deep:#AE8823;
   --ink:#14120D;
   --ink-2:#1B1912;
   --ink-3:#262218;
