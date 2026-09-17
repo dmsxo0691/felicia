@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>FELICIA 응원 메시지</title>
+<meta name="description" content="중창단 FELICIA 단원들에게 응원 메시지를 남겨주세요.">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300&family=Gowun+Batang:wght@400;700&family=IBM+Plex+Sans+KR:wght@300;400;500&display=swap">
+<link rel="stylesheet" href="assets/app.css">
+</head>
+<body>
+<div class="app">
+
+  <div class="cover">
+    <div class="mark" id="mark"></div>
+    <p class="sub">응원 메시지</p>
+    <p class="date" id="cover-date"></p>
+  </div>
+
+  <section class="sec" id="form-sec">
+    <div class="sec-in">
+      <p class="lede center" style="margin-bottom:28px">
+        한 사람을 고르거나, 우리 모두에게 남겨주세요.<br>
+        남긴 메시지는 단원들이 함께 보는 페이지에 제목으로 먼저 올라갑니다.
+      </p>
+
+      <div class="field">
+        <label>누구에게</label>
+        <div class="chips" id="to-chips" style="justify-content:flex-start" role="group" aria-label="받는 사람"></div>
+      </div>
+
+      <div class="field">
+        <label for="f-from">보내는 사람</label>
+        <input type="text" id="f-from" maxlength="20" placeholder="이름 또는 별명" autocomplete="name">
+      </div>
+
+      <div class="field">
+        <label for="f-title">제목</label>
+        <input type="text" id="f-title" maxlength="40" placeholder="예: 무대에서 제일 빛났던 그날">
+        <span class="tiny">단원들이 제목을 먼저 보고, 눌러서 내용을 펼칩니다. 40자까지.</span>
+      </div>
+
+      <div class="field">
+        <label for="f-body">메시지</label>
+        <textarea id="f-body" maxlength="1200" placeholder="길게 써주셔도 됩니다."></textarea>
+        <span class="tiny"><span id="count">0</span> / 1200자</span>
+      </div>
+
+      <div class="warn" id="local-warn" hidden>
+        저장소가 연결되지 않아 이 브라우저에만 저장됩니다. 단원들에게는 전달되지 않습니다.
+      </div>
+
+      <div class="row" style="margin-top:8px">
+        <button class="btn solid lg" id="submit">보내기</button>
+        <span class="tiny" id="msg"></span>
+      </div>
+      <p class="note">보낸 뒤에는 직접 수정하거나 지울 수 없습니다. 보내기 전에 한 번 읽어보세요.</p>
+    </div>
+  </section>
+
+  <section class="sec" id="done-sec" hidden>
+    <div class="sec-in center">
+      <h2 id="done-title">보냈습니다.</h2>
+      <p class="lede" style="margin:0 auto 26px" id="done-sub"></p>
+      <div class="row" style="justify-content:center">
+        <button class="btn" id="again">하나 더 남기기</button>
+        <a class="btn ghost" href="index.html">단원 페이지 보기</a>
+      </div>
+    </div>
+  </section>
+
+  <div class="foot">
+    <p class="tiny" style="margin:0">FELICIA</p>
+  </div>
+</div>
+
+<script src="assets/app.js"></script>
+<script>
+(() => {
+  "use strict";
+  const F = window.FELICIA;
+  const { $, esc, TEAM } = F;
+
+  $("#cover-date").textContent = TEAM.trip.replace(/-/g, ".");
+  F.logo.ready.then(() => F.coverMark($("#mark")));
+  if (!F.store.remote) $("#local-warn").hidden = false;
+
+  let to = "team";
+  function chips() {
+    const items = [{ id: "team", name: "우리 모두에게", part: "" }]
+      .concat(TEAM.members.map(m => ({ id: m.id, name: m.name, part: m.part })));
+    $("#to-chips").innerHTML = items.map(i =>
+      '<button type="button" data-t="' + i.id + '" aria-pressed="' + (i.id === to) + '">'
+      + esc(i.name) + (i.part ? '<span class="part">' + esc(i.part) + "</span>" : "") + "</button>").join("");
+  }
+  chips();
+  $("#to-chips").addEventListener("click", e => {
+    const b = e.target.closest("[data-t]");
+    if (!b) return;
+    to = b.dataset.t; chips();
+  });
+
+  $("#f-body").addEventListener("input", e => { $("#count").textContent = e.target.value.length; });
+
+  $("#submit").addEventListener("click", async () => {
+    const from = $("#f-from").value.trim();
+    const title = $("#f-title").value.trim();
+    const body = $("#f-body").value.trim();
+
+    if (!title) { $("#msg").textContent = "제목을 적어주세요."; $("#f-title").focus(); return; }
+    if (!body) { $("#msg").textContent = "메시지를 적어주세요."; $("#f-body").focus(); return; }
+
+    const btn = $("#submit");
+    btn.disabled = true;
+    $("#msg").textContent = "보내는 중…";
+    try {
+      await F.store.addCheer({ to, from: from || "익명", title, body });
+      const name = to === "team" ? "단원 모두" : (F.member(to) || {}).name;
+      $("#done-sub").textContent = name + "에게 전해졌습니다. 단원 페이지에서 제목으로 먼저 보이고, 누르면 내용이 열립니다.";
+      $("#form-sec").hidden = true;
+      $("#done-sec").hidden = false;
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    } catch (e) {
+      btn.disabled = false;
+      $("#msg").textContent = "보내지 못했습니다. 잠시 후 다시 시도해주세요.";
+    }
+  });
+
+  $("#again").addEventListener("click", () => {
+    $("#f-title").value = "";
+    $("#f-body").value = "";
+    $("#count").textContent = "0";
+    $("#msg").textContent = "";
+    $("#submit").disabled = false;
+    $("#done-sec").hidden = true;
+    $("#form-sec").hidden = false;
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  });
+})();
+</script>
+</body>
+</html>
