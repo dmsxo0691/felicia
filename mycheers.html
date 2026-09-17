@@ -45,12 +45,7 @@
     </div>
   </section>
 
-  <nav class="pagenav" aria-label="페이지 이동">
-    <a href="index.html">처음</a>
-    <a href="voice.html">목소리 지문</a>
-    <a href="wrapped.html">우리의 결산</a>
-    <a href="mycheers.html" aria-current="page">나에게 온 응원</a>
-  </nav>
+  <nav class="pagenav" id="pagenav" aria-label="페이지 이동"></nav>
 </div>
 
 <script src="assets/app.js"></script>
@@ -111,38 +106,42 @@
       return;
     }
     idx = 0; open = false;
-    paint();
+    paint(true);
   }
 
-  function paint() {
+  /* card 를 true 로 부르면 카드 전체가, false 면 펼쳐지는 본문만 살아난다.
+     — 넘길 때는 카드가 통째로, 제목을 누를 때는 본문만 움직이게. */
+  function paint(card) {
     const stage = $("#stage");
     if (!list.length) {
       stage.innerHTML = '<p class="empty">아직 도착한 응원이 없습니다.</p>';
-      $("#dots").innerHTML = "";
+      F.paintDots($("#dots"), 0, 0);
       $("#prev").disabled = true;
       $("#next").disabled = true;
       return;
     }
     idx = F.clamp(idx, 0, list.length - 1);
     const c = list[idx];
+    const a = card ? " fadein" : "";
     stage.innerHTML =
-      '<p class="cheer-to">' + (c.to === "team" ? "우리 모두에게" : "나에게") + "</p>"
-      + '<button class="cheer-title" id="title">' + esc(c.title) + "</button>"
+      '<p class="cheer-to' + a + '">' + (c.to === "team" ? "우리 모두에게" : "나에게") + "</p>"
+      + '<button class="cheer-title' + a + '" id="title">' + esc(c.title) + "</button>"
       + (open
           ? '<p class="cheer-body fadein">' + esc(c.body) + "</p>"
             + '<p class="cheer-from fadein">— ' + esc(c.from || "익명") + "</p>"
-          : '<p class="cheer-hint">제목을 누르면 내용이 열립니다</p>');
-    $("#title").addEventListener("click", () => { open = !open; paint(); });
-    $("#dots").innerHTML = F.dotsHTML(idx, list.length);
+          : '<p class="cheer-hint' + a + '">제목을 누르면 내용이 열립니다</p>');
+    $("#title").addEventListener("click", () => { open = !open; paint(false); });
+    F.paintDots($("#dots"), idx, list.length);
     $("#prev").disabled = idx === 0;
     $("#next").disabled = false;
     $("#next").textContent = idx === list.length - 1 ? "처음으로" : "다음";
   }
 
-  $("#next").addEventListener("click", () => { if (list.length) { idx = (idx + 1) % list.length; open = false; paint(); } });
-  $("#prev").addEventListener("click", () => { if (list.length) { idx = (idx - 1 + list.length) % list.length; open = false; paint(); } });
+  $("#next").addEventListener("click", () => { if (list.length) { idx = (idx + 1) % list.length; open = false; paint(true); } });
+  $("#prev").addEventListener("click", () => { if (list.length) { idx = (idx - 1 + list.length) % list.length; open = false; paint(true); } });
 
   /* ---------- 시작 ---------- */
+  F.mountPageNav($("#pagenav"), "mycheers");
   const remembered = F.recallMe();
   if (remembered) enter(remembered);
   else input.focus();

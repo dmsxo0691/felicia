@@ -122,12 +122,23 @@ textarea{resize:vertical;min-height:140px;line-height:1.7}
 .wr-words{display:flex;flex-wrap:wrap;gap:8px 10px;justify-content:center;margin:20px 0 0}
 .wr-words span{border:1px solid var(--line-2);border-radius:999px;padding:5px 15px;font-size:14px;color:var(--gold-soft)}
 .wr-nav{display:flex;align-items:center;justify-content:center;gap:16px;flex-wrap:wrap}
-.wr-dots{display:flex;gap:5px;flex-wrap:wrap;justify-content:center;max-width:340px}
-.wr-dots i{width:5px;height:5px;border-radius:50%;background:var(--ink-3);display:block}
-.wr-dots i.on{background:var(--gold)}
+/* 점은 다시 그리지 않고 클래스만 바뀌므로 전환이 걸린다.
+   현재 위치는 막대로 늘어나고, 새로 생긴 점은 옆에서 커지며 들어온다. */
+.wr-dots{display:flex;gap:6px;align-items:center;justify-content:center;min-height:6px}
+.wr-dots i{
+  width:6px;height:6px;border-radius:999px;display:block;
+  background:rgba(248,216,112,.26);   /* 먹색 배경에서 --ink-3 은 거의 안 보인다 */
+  transition:width .34s cubic-bezier(.4,0,.2,1), background .34s ease, opacity .28s ease, transform .28s ease;
+}
+.wr-dots i.on{width:22px;background:var(--gold)}
+.wr-dots i.enter{opacity:0;transform:scale(.4)}
+
 .fadein{animation:fade .5s ease both}
 @keyframes fade{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:none}}
-@media (prefers-reduced-motion:reduce){.fadein{animation:none}}
+@media (prefers-reduced-motion:reduce){
+  .fadein{animation:none}
+  .wr-dots i{transition:none}
+}
 
 /* ---------- 통계 리스트 ---------- */
 .stats{list-style:none;margin:20px 0 0;padding:0;border-top:1px solid var(--line)}
@@ -266,17 +277,35 @@ textarea{resize:vertical;min-height:140px;line-height:1.7}
   .entries .arrow{display:none}
 }
 
-/* ---------- 페이지 사이 이동 ---------- */
+/* ---------- 페이지 사이 이동 ----------
+   탭 막대 대신 앞뒤 순서를 이름으로 보여주는 쪽매김. */
 .pagenav{
-  border-top:1px solid var(--line);padding:22px 20px 44px;
-  display:flex;gap:10px;flex-wrap:wrap;justify-content:center;align-items:center;
+  border-top:1px solid var(--line);
+  margin-top:8px;padding:28px 20px 40px;
+  display:grid;grid-template-columns:1fr 1fr;gap:30px 18px;
+  max-width:620px;margin-inline:auto;
 }
-.pagenav a{
-  text-decoration:none;font-size:12.5px;letter-spacing:.04em;color:var(--muted);
-  padding:7px 14px;border-radius:999px;transition:color .18s,background .18s;
+.pagenav a{text-decoration:none}
+.pn-side{display:flex;flex-direction:column;gap:5px;min-width:0}
+.pn-next{text-align:right;align-items:flex-end}
+.pn-dir{
+  font-size:10px;letter-spacing:.26em;text-transform:uppercase;
+  color:var(--gold-deep);transition:color .18s;
 }
-.pagenav a:hover{color:var(--cream);background:var(--ink-2)}
-.pagenav a[aria-current="page"]{color:var(--gold);background:var(--ink-3)}
+.pn-title{
+  font-family:var(--serif);font-size:16.5px;line-height:1.35;color:var(--muted);
+  word-break:keep-all;transition:color .18s;
+}
+.pn-side:hover .pn-title{color:var(--gold)}
+.pn-side:hover .pn-dir{color:var(--gold)}
+.pn-home{
+  grid-column:1/-1;justify-self:center;
+  font-family:var(--serif);font-size:12px;letter-spacing:.5em;text-transform:uppercase;
+  color:var(--muted-2);padding:10px 4px 0 calc(4px + .5em);
+  border-top:1px solid var(--line);width:100%;text-align:center;
+  transition:color .18s;
+}
+.pn-home:hover{color:var(--gold)}
 
 /* ---------- 확인 코드 ---------- */
 .gate{max-width:380px;margin:0 auto;text-align:center}

@@ -257,16 +257,31 @@
 
   /** 진행 점은 전부 찍지 않고 현재 위치 둘레만 보여준다.
       가운데에서는 3개(앞·현재·뒤), 처음과 마지막에서는 2개. */
-  function dotsHTML(idx, total) {
-    if (total <= 1) return '<i class="on"></i>';
+  function dotWindow(idx, total) {
+    if (total <= 1) return { start: 0, end: 0 };
     let start = idx - 1, end = idx + 1;
     if (idx === 0) { start = 0; end = 1; }
     else if (idx === total - 1) { start = total - 2; end = total - 1; }
-    start = Math.max(0, start);
-    end = Math.min(total - 1, end);
-    let html = "";
-    for (let i = start; i <= end; i++) html += '<i class="' + (i === idx ? "on" : "") + '"></i>';
-    return html;
+    return { start: Math.max(0, start), end: Math.min(total - 1, end) };
+  }
+
+  /** 점을 다시 만들지 않고 있는 것을 재사용해 클래스만 바꾼다.
+      그래야 CSS 전환이 걸려서 활성 점이 막대로 늘어나는 게 보인다. */
+  function paintDots(el, idx, total) {
+    if (!el) return;
+    if (total <= 0) { el.innerHTML = ""; return; }
+    const w = dotWindow(idx, total);
+    const need = w.end - w.start + 1;
+    while (el.children.length > need) el.lastElementChild.remove();
+    while (el.children.length < need) {
+      const i = document.createElement("i");
+      i.className = "enter";
+      el.appendChild(i);
+      requestAnimationFrame(() => i.classList.remove("enter"));
+    }
+    for (let k = 0; k < need; k++) {
+      el.children[k].classList.toggle("on", w.start + k === idx);
+    }
   }
 
   /* 슬라이드 뷰어 하나를 붙인다. 반환된 객체로 넘기고 되돌린다. */
@@ -278,7 +293,7 @@
       const s = arr[idx];
       stageEl.className = "wr" + (s.quiet ? " wr-quiet" : "") + (s.cover ? " wr-cover" : "");
       stageEl.innerHTML = slideHTML(s, prints);
-      if (dotsEl) dotsEl.innerHTML = dotsHTML(idx, arr.length);
+      paintDots(dotsEl, idx, arr.length);
       if (prevEl) prevEl.disabled = idx === 0;
       if (nextEl) nextEl.textContent = idx === arr.length - 1 ? "처음으로" : "다음";
     }
@@ -300,6 +315,31 @@
       setPrints(p) { prints = p; paint(); },
       reset() { idx = 0; arr = slides(); paint(); }
     };
+  }
+
+  /* ======================================================================
+     6-2. 페이지 사이 이동
+     ====================================================================== */
+  const PAGES = [
+    { key: "voice",    n: "01", title: "목소리 지문",    href: "voice.html" },
+    { key: "wrapped",  n: "02", title: "우리의 결산",    href: "wrapped.html" },
+    { key: "mycheers", n: "03", title: "나에게 온 응원", href: "mycheers.html" }
+  ];
+
+  /** 앞뒤 순서를 이름으로 보여주는 하단 이동. 셋을 순환한다. */
+  function mountPageNav(el, key) {
+    if (!el) return;
+    const i = PAGES.findIndex(p => p.key === key);
+    const prev = PAGES[(i - 1 + PAGES.length) % PAGES.length];
+    const next = PAGES[(i + 1) % PAGES.length];
+    el.innerHTML =
+      '<a class="pn-side pn-prev" href="' + prev.href + '">'
+      + '<span class="pn-dir">이전 · ' + prev.n + '</span>'
+      + '<span class="pn-title">' + esc(prev.title) + '</span></a>'
+      + '<a class="pn-side pn-next" href="' + next.href + '">'
+      + '<span class="pn-dir">' + next.n + ' · 다음</span>'
+      + '<span class="pn-title">' + esc(next.title) + '</span></a>'
+      + '<a class="pn-home" href="index.html">Felicia</a>';
   }
 
   /* ======================================================================
@@ -634,7 +674,7 @@
     TEAM, ENDPOINT, stats, store, logo,
     $, $$, esc, nf, clamp, member,
     encArr, decArr, inflate, pack,
-    slides, slideHTML, mountWrapped, dotsHTML,
+    slides, slideHTML, mountWrapped, paintDots, mountPageNav,
     analyze, drawArt, coverMark, savePNG,
     verifyCode, rememberMe, recallMe, forgetMe, cheersFor
   };

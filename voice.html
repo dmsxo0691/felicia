@@ -29,12 +29,7 @@
     </div>
   </section>
 
-  <nav class="pagenav" aria-label="페이지 이동">
-    <a href="index.html">처음</a>
-    <a href="voice.html" aria-current="page">목소리 지문</a>
-    <a href="wrapped.html">우리의 결산</a>
-    <a href="mycheers.html">나에게 온 응원</a>
-  </nav>
+  <nav class="pagenav" id="pagenav" aria-label="페이지 이동"></nav>
 </div>
 
 <script src="assets/app.js"></script>
@@ -95,6 +90,8 @@
     const ok = await F.savePNG(canvas, "felicia-" + (m ? m.name : "voiceprint") + ".png");
     $("#msg").textContent = ok ? "저장했습니다." : "저장하지 못했습니다. 이미지를 길게 눌러 저장해주세요.";
   });
+
+  F.mountPageNav($("#pagenav"), "voice");
 
   (async () => {
     await F.logo.ready;

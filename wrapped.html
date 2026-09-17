@@ -24,12 +24,7 @@
     </div>
   </section>
 
-  <nav class="pagenav" aria-label="페이지 이동">
-    <a href="index.html">처음</a>
-    <a href="voice.html">목소리 지문</a>
-    <a href="wrapped.html" aria-current="page">우리의 결산</a>
-    <a href="mycheers.html">나에게 온 응원</a>
-  </nav>
+  <nav class="pagenav" id="pagenav" aria-label="페이지 이동"></nav>
 </div>
 
 <script src="assets/app.js"></script>
@@ -42,6 +37,7 @@
     prev: F.$("#prev"), next: F.$("#next"),
     keys: true, active: () => true
   });
+  F.mountPageNav(F.$("#pagenav"), "wrapped");
   (async () => {
     try { wrapped.setPrints(await F.store.getPrints()); } catch (e) { /* 음역 없이 보여준다 */ }
   })();
