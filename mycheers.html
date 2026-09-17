@@ -133,7 +133,7 @@
             + '<p class="cheer-from fadein">— ' + esc(c.from || "익명") + "</p>"
           : '<p class="cheer-hint">제목을 누르면 내용이 열립니다</p>');
     $("#title").addEventListener("click", () => { open = !open; paint(); });
-    $("#dots").innerHTML = list.map((_, i) => '<i class="' + (i === idx ? "on" : "") + '"></i>').join("");
+    $("#dots").innerHTML = F.dotsHTML(idx, list.length);
     $("#prev").disabled = idx === 0;
     $("#next").disabled = false;
     $("#next").textContent = idx === list.length - 1 ? "처음으로" : "다음";

@@ -212,15 +212,15 @@
   function slides() {
     const s = stats();
     const out = [
-      { kick: "Felicia", lead: "우리의 결산", quiet: true },
+      { kick: "Felicia", lead: "우리의 결산", quiet: true, cover: true },
       { kick: "처음", lead: "우리는 " + s.foundedLabel + "에 처음 만났습니다.", big: nf(s.days), unit: "일 전", foot: "약 " + s.years.toFixed(1) + "년입니다." },
       { kick: "연습", lead: "그동안 모여서 연습한 횟수", big: nf(TEAM.practice), unit: "번", foot: "한 번도 안 빠진 사람은 아무도 없었습니다." },
       { kick: "시간", lead: "연습에 쓴 시간을 모두 더하면", big: nf(s.practiceH), unit: "시간", foot: "쉬지 않고 이어 붙이면 " + s.practiceDays.toFixed(1) + "일입니다." },
       { kick: "그런데", lead: "그중 실제로 무대에 선 시간은", big: nf(s.stageMin), unit: "분", foot: "무대 " + TEAM.stages + "번, 한 번에 " + TEAM.smin + "분." },
       { kick: "비율", lead: "연습한 시간 대비 무대에 선 시간", big: s.ratio.toFixed(2) + "%", foot: "나머지 " + (100 - s.ratio).toFixed(2) + "%는 전부 연습이었습니다.", quiet: true },
-      { kick: "일곱 명", lead: "일곱 명의 시간을 모두 더하면", big: nf(s.personH), unit: "시간", foot: "전부 주말과 퇴근 후에서 잘라낸 시간입니다." },
+      { kick: "일곱 명", lead: "일곱 명의 시간을 모두 더하면", big: nf(s.personH), unit: "시간", foot: "전부 주말과 퇴근 후에 할애한 시간입니다." },
       { kick: "레퍼토리", lead: "함께 부른 곡", big: nf(TEAM.songs), unit: "곡" },
-      { kick: "함께 간 곳", lead: "총회와 지파 행사에 함께 지원 간 횟수", big: nf(TEAM.events), unit: "번", foot: "노래하러 간 날, 그 이동 시간까지는 세지 않았습니다." }
+      { kick: "함께 간 곳", lead: "총회와 지파 행사에 함께 지원 간 횟수는 약", big: nf(TEAM.events), unit: "번", foot: "새벽 이슬같은 우리를 하나님께서 지켜보셨습니다." }
     ];
 
     TEAM.members.forEach((m, i) => {
@@ -231,7 +231,7 @@
       });
     });
 
-    out.push({ kick: "마지막", lead: "무대에 선 " + nf(s.stageMin) + "분이 아니라,", big: nf(s.practiceH), unit: "시간 — 같은 방에 함께 있었던 시간." });
+    out.push({ kick: "마지막", lead: "무대에 선 " + nf(s.stageMin) + "분이 아니라,", big: nf(s.practiceH), unit: "시간 — 우리 함께 공유한 시간." });
     out.push({ kick: "", lead: "그게 우리가 한 일의 전부입니다.\n그리고 오늘 밤도, 그중 하나입니다.", quiet: true });
     return out;
   }
@@ -255,6 +255,20 @@
     return '<div class="wr-slide fadein">' + html + "</div>";
   }
 
+  /** 진행 점은 전부 찍지 않고 현재 위치 둘레만 보여준다.
+      가운데에서는 3개(앞·현재·뒤), 처음과 마지막에서는 2개. */
+  function dotsHTML(idx, total) {
+    if (total <= 1) return '<i class="on"></i>';
+    let start = idx - 1, end = idx + 1;
+    if (idx === 0) { start = 0; end = 1; }
+    else if (idx === total - 1) { start = total - 2; end = total - 1; }
+    start = Math.max(0, start);
+    end = Math.min(total - 1, end);
+    let html = "";
+    for (let i = start; i <= end; i++) html += '<i class="' + (i === idx ? "on" : "") + '"></i>';
+    return html;
+  }
+
   /* 슬라이드 뷰어 하나를 붙인다. 반환된 객체로 넘기고 되돌린다. */
   function mountWrapped(opts) {
     const stageEl = opts.stage, dotsEl = opts.dots, prevEl = opts.prev, nextEl = opts.next;
@@ -262,9 +276,9 @@
 
     function paint() {
       const s = arr[idx];
-      stageEl.className = "wr" + (s.quiet ? " wr-quiet" : "");
+      stageEl.className = "wr" + (s.quiet ? " wr-quiet" : "") + (s.cover ? " wr-cover" : "");
       stageEl.innerHTML = slideHTML(s, prints);
-      if (dotsEl) dotsEl.innerHTML = arr.map((_, i) => '<i class="' + (i === idx ? "on" : "") + '"></i>').join("");
+      if (dotsEl) dotsEl.innerHTML = dotsHTML(idx, arr.length);
       if (prevEl) prevEl.disabled = idx === 0;
       if (nextEl) nextEl.textContent = idx === arr.length - 1 ? "처음으로" : "다음";
     }
@@ -620,7 +634,7 @@
     TEAM, ENDPOINT, stats, store, logo,
     $, $$, esc, nf, clamp, member,
     encArr, decArr, inflate, pack,
-    slides, slideHTML, mountWrapped,
+    slides, slideHTML, mountWrapped, dotsHTML,
     analyze, drawArt, coverMark, savePNG,
     verifyCode, rememberMe, recallMe, forgetMe, cheersFor
   };
