@@ -106,6 +106,21 @@
   /** 2026-09-23 -> 2026.09.23 */
   const dotDate = iso => (iso && /^\d{4}-\d{2}-\d{2}$/.test(iso)) ? iso.replace(/-/g, ".") : "";
 
+  /** 입교 날짜는 연도를 두 자리로 적고 두 자리로 보여줍니다.
+      19-03-11 -> 19.03.11. 예전에 네 자리로 넣은 값도 두 자리로 줄여 받습니다. */
+  function shortDate(v) {
+    if (!v) return "";
+    let m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(v);
+    if (m) return m[1].slice(2) + "." + m[2] + "." + m[3];
+    m = /^(\d{2})-(\d{2})-(\d{2})$/.exec(v);
+    return m ? m[1] + "." + m[2] + "." + m[3] : "";
+  }
+  /** 저장된 입교 값을 연·월·일로 쪼갭니다. */
+  function splitJoined(v) {
+    const s = shortDate(v);
+    return s ? { y: s.slice(0, 2), m: s.slice(3, 5), d: s.slice(6, 8) } : { y: "", m: "", d: "" };
+  }
+
   /* ---------- 개인 아이콘 ----------
      캔버스에 직접 그린다. 글꼴에 있는 기호를 쓰면 기기마다 없을 수 있다.
      각 draw 는 원점이 가운데, 한 변이 1인 상자 안에 그린다고 보고 그린다. */
@@ -764,7 +779,7 @@
 
     if (info.icon) drawIcon(g, info.icon, S / 2, S * 0.882, S * 0.036, fg);
 
-    const born = dotDate(info.born), joined = dotDate(info.joined);
+    const born = dotDate(info.born), joined = shortDate(info.joined);
     const sign = zodiac(info.born);
     g.fillStyle = onCream ? "#7A7159" : "#8C8674";
     g.font = '300 ' + (S * 0.0145) + 'px "IBM Plex Sans KR", sans-serif';
@@ -820,7 +835,7 @@
     $, $$, esc, nf, clamp, member,
     encArr, decArr, inflate, pack,
     slides, slideHTML, mountWrapped, paintDots, mountPageNav,
-    zodiac, dotDate, ICONS, ICON_KEYS, drawIcon,
+    zodiac, dotDate, shortDate, splitJoined, ICONS, ICON_KEYS, drawIcon,
     analyze, drawArt, coverMark, savePNG,
     verifyCode, rememberMe, recallMe, forgetMe, cheersFor
   };

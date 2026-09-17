@@ -316,6 +316,10 @@ textarea{resize:vertical;min-height:140px;line-height:1.7}
 }
 .pn-home:hover{color:var(--gold)}
 
+/* ---------- 연·월·일 고르기 ---------- */
+.ymd{display:grid;grid-template-columns:1.1fr 1fr 1fr;gap:8px}
+.ymd select{width:100%}
+
 /* ---------- 아이콘 고르기 ---------- */
 .icon-pick{display:grid;grid-template-columns:repeat(auto-fit,minmax(74px,1fr));gap:10px}
 .icon-pick button{

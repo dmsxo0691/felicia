@@ -7,7 +7,7 @@
 <meta name="description" content="내 목소리를 분석해 만드는 FELICIA 로고.">
 <meta name="robots" content="noindex">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300&family=Gowun+Batang:wght@400;700&family=IBM+Plex+Sans+KR:wght@300;400;500&display=swap">
-<link rel="stylesheet" href="assets/app.css?v=9">
+<link rel="stylesheet" href="assets/app.css?v=10">
 </head>
 <body>
 <div class="app">
@@ -73,8 +73,12 @@
             <input type="date" id="born">
           </div>
           <div class="field">
-            <label for="joined">입교 날짜</label>
-            <input type="date" id="joined">
+            <label for="j-y">입교 날짜</label>
+            <div class="ymd">
+              <select id="j-y" aria-label="입교 연"></select>
+              <select id="j-m" aria-label="입교 월"></select>
+              <select id="j-d" aria-label="입교 일"></select>
+            </div>
           </div>
         </div>
         <p class="tiny" id="zodiac-note" style="margin:-6px 0 0">생년월일을 넣으면 별자리가 자동으로 붙습니다.</p>
@@ -101,7 +105,7 @@
   <nav class="pagenav" id="pagenav" aria-label="페이지 이동"></nav>
 </div>
 
-<script src="assets/app.js?v=9"></script>
+<script src="assets/app.js?v=10"></script>
 <script>
 (() => {
   "use strict";
@@ -164,7 +168,7 @@
     rec = Object.assign({}, prints[me] || {});
     analysis = F.inflate(rec);
     $("#born").value = rec.born || "";
-    $("#joined").value = rec.joined || "";
+    joinedFields();
     icons();
     paint();
     chips();
@@ -242,7 +246,28 @@
 
   /* ---------- 내 정보 ---------- */
   $("#born").addEventListener("change", e => { rec.born = e.target.value || ""; paint(); queueSave(); });
-  $("#joined").addEventListener("change", e => { rec.joined = e.target.value || ""; paint(); queueSave(); });
+
+  /* 입교 연도는 00~99 중에서 고릅니다. */
+  function joinedFields() {
+    const cur = F.splitJoined(rec.joined);
+    const opts = (n, from, to, unit, pad) => {
+      let h = '<option value="">' + unit + '</option>';
+      for (let i = from; i <= to; i++) {
+        const v = String(i).padStart(2, "0");
+        h += '<option value="' + v + '">' + (pad ? v : i) + unit + "</option>";
+      }
+      return h;
+    };
+    $("#j-y").innerHTML = opts("y", 0, 99, "년", true);
+    $("#j-m").innerHTML = opts("m", 1, 12, "월", false);
+    $("#j-d").innerHTML = opts("d", 1, 31, "일", false);
+    $("#j-y").value = cur.y; $("#j-m").value = cur.m; $("#j-d").value = cur.d;
+  }
+  ["#j-y", "#j-m", "#j-d"].forEach(sel => $(sel).addEventListener("change", () => {
+    const y = $("#j-y").value, m = $("#j-m").value, d = $("#j-d").value;
+    rec.joined = (y && m && d) ? (y + "-" + m + "-" + d) : "";
+    paint(); queueSave();
+  }));
 
   /* ---------- 아이콘 ---------- */
   function icons() {
