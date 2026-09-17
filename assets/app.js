@@ -212,7 +212,7 @@
   function slides() {
     const s = stats();
     const out = [
-      { kick: "Felicia", lead: "우리의 결산", foot: "숫자만 보여줍니다. 해석은 각자.", quiet: true },
+      { kick: "Felicia", lead: "우리의 결산", quiet: true },
       { kick: "처음", lead: "우리는 " + s.foundedLabel + "에 처음 만났습니다.", big: nf(s.days), unit: "일 전", foot: "약 " + s.years.toFixed(1) + "년입니다." },
       { kick: "연습", lead: "그동안 모여서 연습한 횟수", big: nf(TEAM.practice), unit: "번", foot: "한 번도 안 빠진 사람은 아무도 없었습니다." },
       { kick: "시간", lead: "연습에 쓴 시간을 모두 더하면", big: nf(s.practiceH), unit: "시간", foot: "쉬지 않고 이어 붙이면 " + s.practiceDays.toFixed(1) + "일입니다." },

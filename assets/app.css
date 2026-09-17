@@ -147,7 +147,20 @@ textarea{resize:vertical;min-height:140px;line-height:1.7}
 /* ---------- 작품 ---------- */
 .art-box{min-height:120px;display:grid;place-items:center;margin-top:20px}
 .art{width:100%;max-width:460px;display:block;border-radius:3px}
-.card-box{background:var(--ink-2);border:1px solid var(--line);border-radius:3px;padding:clamp(26px,6vw,42px) 20px;min-height:300px;display:flex}
+/* 결산 카드는 높이를 고정한다. min-height 로 두면 장마다 내용 길이가 달라
+   카드가 늘었다 줄었다 하면서 넘길 때마다 화면이 흔들린다. */
+.card-box{
+  background:var(--ink-2);border:1px solid var(--line);border-radius:3px;
+  padding:clamp(22px,5vw,40px) 18px;
+  height:clamp(400px,58vh,500px);
+  display:flex;overflow:hidden;
+}
+.card-box .wr{width:100%;min-height:0}
+/* 좁은 화면에서 설명 줄이 길어지면 카드를 넘치므로 폭을 좁혀 줄 수를 줄인다. */
+@media (max-width:420px){
+  .wr-foot{max-width:30ch;font-size:13px}
+  .wr-lead{font-size:17.5px}
+}
 
 /* ---------- 응원 메시지 ---------- */
 .cheer-stage{
