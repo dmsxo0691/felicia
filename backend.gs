@@ -1,18 +1,43 @@
 /**
  * FELICIA — 응원 메시지 · 목소리 지문 저장소
  *
- * Google 스프레드시트 하나만 있으면 되고 전부 무료입니다.
+ * Google Apps Script 웹앱. 전부 무료입니다.
  * 설치 방법은 README.md 의 "2. 저장소 만들기" 를 보세요.
+ *
+ * 스프레드시트는 알아서 잡습니다. 따로 ID를 넣을 필요가 없습니다.
+ *   1) 스크립트 속성에 기억된 시트가 있으면 그것
+ *   2) 스프레드시트에 연결된(바인딩된) 스크립트면 그 시트
+ *   3) 둘 다 아니면 내 드라이브에 새로 만들고 그 ID를 기억
  *
  * 저장 위치
  *   시트 "cheers" — 응원 메시지 한 줄에 하나
  *   시트 "prints" — A1 칸에 목소리 분석 결과 전체(JSON 한 덩어리)
+ *
+ * 시트가 어디에 생겼는지 확인하려면 웹앱 주소 뒤에 ?kind=info 를 붙여 열어보세요.
  */
 
 var CHEERS_HEADERS = ["id", "at", "to", "from", "title", "body"];
+var PROP_SHEET_ID = "FELICIA_SHEET_ID";
+
+function book_() {
+  var props = PropertiesService.getScriptProperties();
+  var id = props.getProperty(PROP_SHEET_ID);
+  if (id) {
+    try { return SpreadsheetApp.openById(id); } catch (e) { /* 지워졌으면 아래로 */ }
+  }
+  var active = null;
+  try { active = SpreadsheetApp.getActiveSpreadsheet(); } catch (e) { active = null; }
+  if (active) {
+    props.setProperty(PROP_SHEET_ID, active.getId());
+    return active;
+  }
+  var created = SpreadsheetApp.create("FELICIA 응원 메시지");
+  props.setProperty(PROP_SHEET_ID, created.getId());
+  return created;
+}
 
 function sheetNamed_(name, headers) {
-  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var ss = book_();
   var sh = ss.getSheetByName(name);
   if (!sh) {
     sh = ss.insertSheet(name);
@@ -30,6 +55,11 @@ function json_(obj) {
 function doGet(e) {
   try {
     var kind = String((e && e.parameter && e.parameter.kind) || "");
+
+    if (kind === "info") {
+      var ss = book_();
+      return json_({ ok: true, sheet: ss.getUrl(), name: ss.getName(), id: ss.getId() });
+    }
 
     if (kind === "cheers") {
       var sh = sheetNamed_("cheers", CHEERS_HEADERS);

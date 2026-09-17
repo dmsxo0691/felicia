@@ -28,8 +28,8 @@
   };
 
   /* 응원 메시지 저장소 주소 (Google Apps Script 웹앱 URL).
-     비워두면 이 기기 안에서만 저장됩니다 — 배포 후 반드시 채워주세요. */
-  const ENDPOINT = "";
+     비워두면 이 기기 안에서만 저장됩니다. */
+  const ENDPOINT = "https://script.google.com/macros/s/AKfycbxZ6sjJBfBnd0EkPlMCIOiOprjhU6fXKKFbg39squ0lN7QJP9Wz5Cs8FgwXwtcYlRrZvg/exec";
 
   /* 로고 이미지 안에서 원형 링이 차지하는 위치 (이미지 크기에 대한 비율).
      logo.png 픽셀에서 실측한 값입니다 — 로고를 교체하면 다시 측정해야 합니다.
