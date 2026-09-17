@@ -16,6 +16,10 @@
  * 시트가 어디에 생겼는지 확인하려면 웹앱 주소 뒤에 ?kind=info 를 붙여 열어보세요.
  */
 
+/* 이 판의 번호입니다. 웹앱 주소 뒤에 ?kind=info 를 붙여 열면 보입니다.
+   배포가 제대로 반영됐는지 이 숫자로 확인하세요. */
+var VERSION = 3;
+
 var CHEERS_HEADERS = ["id", "at", "to", "from", "title", "body"];
 var PROP_SHEET_ID = "FELICIA_SHEET_ID";
 
@@ -96,7 +100,11 @@ function doGet(e) {
 
     if (kind === "info") {
       var ss = book_();
-      return json_({ ok: true, sheet: ss.getUrl(), name: ss.getName(), id: ss.getId() });
+      return json_({
+        ok: true, version: VERSION,
+        actions: ["cheers/add", "prints/merge", "prints/put"],
+        sheet: ss.getUrl(), name: ss.getName(), id: ss.getId()
+      });
     }
 
     if (kind === "cheers") {
