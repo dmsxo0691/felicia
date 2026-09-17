@@ -4,21 +4,42 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>목소리 지문 — FELICIA</title>
-<meta name="description" content="각 단원의 목소리를 분석해 만든 FELICIA 로고.">
+<meta name="description" content="내 목소리를 분석해 만드는 FELICIA 로고.">
+<meta name="robots" content="noindex">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300&family=Gowun+Batang:wght@400;700&family=IBM+Plex+Sans+KR:wght@300;400;500&display=swap">
-<link rel="stylesheet" href="assets/app.css?v=7">
+<link rel="stylesheet" href="assets/app.css?v=8">
 </head>
 <body>
 <div class="app">
 
-  <section class="sec" style="border-top:0">
+  <!-- 코드 입력 -->
+  <section class="sec" id="gate-sec" style="border-top:0">
+    <div class="sec-in">
+      <div class="gate">
+        <p class="eyebrow">01</p>
+        <h2>목소리 지문</h2>
+        <p class="tiny" style="margin:0 0 26px">내 것을 만들려면 네 자리 확인 코드를 넣어주세요.</p>
+        <label for="code" class="tiny" style="display:block;margin-bottom:10px;letter-spacing:.12em;text-transform:uppercase">확인 코드</label>
+        <input class="code-in" type="text" id="code" inputmode="numeric" autocomplete="off"
+               maxlength="4" pattern="[0-9]*" placeholder="····" aria-describedby="gate-msg">
+        <p class="gate-msg" id="gate-msg" role="status"></p>
+        <div class="row" style="justify-content:center;margin-top:6px">
+          <button class="btn solid lg" id="enter">확인</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 만들기 -->
+  <section class="sec" id="make-sec" style="border-top:0" hidden>
     <div class="sec-in">
       <p class="eyebrow center">01</p>
-      <h2>목소리 지문</h2>
-      <div class="chips" id="chips" role="group" aria-label="단원 선택" style="margin-top:22px"></div>
+      <h2>내 목소리 지문</h2>
+      <p class="whoami" id="whoami"></p>
+
       <div class="art-box" id="art"></div>
-      <ul class="stats" id="stats" hidden></ul>
-      <div class="row" style="margin-top:18px;justify-content:center">
+
+      <div class="row" style="margin-top:16px;justify-content:center">
         <button class="btn" id="save" disabled>PNG로 저장</button>
         <div class="seg" role="group" aria-label="배경">
           <button id="bg-cream" aria-pressed="true">아이보리</button>
@@ -26,13 +47,61 @@
         </div>
       </div>
       <p class="note center" id="msg">휴대폰에서는 이미지를 길게 눌러 저장할 수도 있습니다.</p>
+
+      <div class="panel" style="margin-top:30px">
+        <h3>목소리</h3>
+        <label class="drop" id="drop" for="file">
+          <input type="file" id="file" accept="audio/*" hidden>
+          <b style="color:var(--gold);font-weight:400">녹음 파일 첨부</b>
+          <span class="tiny" style="display:block;margin-top:6px">m4a · mp3 · wav · 끌어다 놓아도 됩니다</span>
+        </label>
+        <div class="row" style="margin-top:12px">
+          <button class="btn" id="rec">마이크로 15초 녹음</button>
+          <span class="tiny" id="recmsg"></span>
+        </div>
+        <div class="bar"><i id="bar"></i></div>
+        <p class="tiny" style="margin-top:12px">
+          15~30초면 충분합니다. <b>편한 음 → 낮은 음 → 높은 음</b>을 한 번씩 내면 지문이 더 뚜렷해집니다.
+        </p>
+      </div>
+
+      <div class="panel">
+        <h3>내 정보</h3>
+        <div class="grid2">
+          <div class="field">
+            <label for="born">생년월일</label>
+            <input type="date" id="born">
+          </div>
+          <div class="field">
+            <label for="joined">입교 날짜</label>
+            <input type="date" id="joined">
+          </div>
+        </div>
+        <p class="tiny" id="zodiac-note" style="margin:-6px 0 0">생년월일을 넣으면 별자리가 자동으로 붙습니다.</p>
+      </div>
+
+      <div class="panel">
+        <h3>내 아이콘</h3>
+        <div class="icon-pick" id="icons" role="group" aria-label="아이콘 선택"></div>
+      </div>
+
+      <p class="note center" id="savestate"></p>
+    </div>
+  </section>
+
+  <!-- 모두 보기 -->
+  <section class="sec" id="all-sec" hidden>
+    <div class="sec-in">
+      <h2>단원들의 지문</h2>
+      <div class="chips" id="chips" role="group" aria-label="단원 선택" style="margin-top:20px"></div>
+      <div class="art-box" id="art2"></div>
     </div>
   </section>
 
   <nav class="pagenav" id="pagenav" aria-label="페이지 이동"></nav>
 </div>
 
-<script src="assets/app.js?v=7"></script>
+<script src="assets/app.js?v=8"></script>
 <script>
 (() => {
   "use strict";
@@ -41,42 +110,161 @@
 
   const canvas = document.createElement("canvas");
   canvas.width = canvas.height = 2048;
-  let prints = {}, sel = null, bg = "cream";
+  const canvas2 = document.createElement("canvas");
+  canvas2.width = canvas2.height = 2048;
 
-  function chips() {
-    $("#chips").innerHTML = TEAM.members.map(m => {
-      const has = !!prints[m.id];
-      return '<button data-m="' + m.id + '" aria-pressed="' + (m.id === sel) + '"' + (has ? "" : " disabled") + '>'
-        + esc(m.name) + '<span class="part">' + esc(m.part) + '</span></button>';
-    }).join("");
-  }
+  let me = null;          // 내 단원 id
+  let prints = {};        // 전체
+  let rec = {};           // 내 기록 (env·bands·born·joined·icon)
+  let analysis = null;    // 화면에 그릴 분석 결과
+  let bg = "cream";
+  let saveTimer = null;
 
-  function paint() {
-    if (!sel || !prints[sel]) {
-      $("#art").innerHTML = '<p class="empty">아직 목소리 지문이 준비되지 않았습니다.</p>';
-      $("#stats").hidden = true;
-      $("#save").disabled = true;
+  /* ---------- 코드 ---------- */
+  const input = $("#code");
+  async function tryCode() {
+    const id = await F.verifyCode(input.value);
+    if (!id) {
+      $("#gate-msg").textContent = "코드가 맞지 않습니다. 다시 확인해주세요.";
+      input.select();
       return;
     }
-    const p = prints[sel];
-    F.drawArt(canvas, { memberId: sel, a: F.inflate(p) }, bg);
-    const m = F.member(sel);
-    $("#art").innerHTML = '<img class="art" src="' + canvas.toDataURL("image/png")
-      + '" alt="' + esc(m ? m.name : "") + '의 목소리 지문 로고">';
-    $("#stats").hidden = false;
-    $("#stats").innerHTML =
-      '<li><span>음역</span><b>' + esc(p.low) + " – " + esc(p.high) + '</b></li>'
-      + '<li><span>중간 음높이</span><b>' + esc(p.avg) + " · " + p.avgHz + 'Hz</b></li>'
-      + '<li><span>길이</span><b>' + p.seconds + '초</b></li>';
-    $("#save").disabled = false;
+    F.rememberMe(id);
+    enter(id);
+  }
+  input.addEventListener("input", () => {
+    input.value = input.value.replace(/\D/g, "").slice(0, 4);
+    $("#gate-msg").textContent = "";
+    if (input.value.length === 4) tryCode();
+  });
+  input.addEventListener("keydown", e => { if (e.key === "Enter") tryCode(); });
+  $("#enter").addEventListener("click", tryCode);
+
+  /* ---------- 들어오기 ---------- */
+  async function enter(id) {
+    me = id;
+    const m = F.member(id);
+    $("#gate-sec").hidden = true;
+    $("#make-sec").hidden = false;
+    $("#all-sec").hidden = false;
+    $("#whoami").innerHTML = '<b>' + esc(m.name) + '</b><span>' + esc(m.part)
+      + '</span><button class="btn ghost" id="switch" style="font-size:11px">내가 아닙니다</button>';
+    $("#switch").addEventListener("click", () => {
+      F.forgetMe();
+      me = null; rec = {}; analysis = null;
+      input.value = "";
+      $("#make-sec").hidden = true;
+      $("#all-sec").hidden = true;
+      $("#gate-sec").hidden = false;
+      input.focus();
+    });
+
+    await F.logo.ready;
+    try { prints = await F.store.getPrints(); } catch (e) { prints = {}; }
+    rec = Object.assign({}, prints[me] || {});
+    analysis = F.inflate(rec);
+    $("#born").value = rec.born || "";
+    $("#joined").value = rec.joined || "";
+    icons();
+    paint();
+    chips();
   }
 
-  $("#chips").addEventListener("click", e => {
-    const b = e.target.closest("[data-m]");
-    if (!b || b.disabled) return;
-    sel = b.dataset.m;
-    chips(); paint();
+  /* ---------- 그리기 ---------- */
+  function paint() {
+    F.drawArt(canvas, { memberId: me, a: analysis, info: rec }, bg);
+    const m = F.member(me);
+    $("#art").innerHTML = '<img class="art" src="' + canvas.toDataURL("image/png")
+      + '" alt="' + esc(m ? m.name : "") + '의 목소리 지문 로고">';
+    $("#save").disabled = false;
+    const z = F.zodiac(rec.born);
+    $("#zodiac-note").textContent = z
+      ? "별자리: " + z + " — 자동으로 계산했습니다."
+      : "생년월일을 넣으면 별자리가 자동으로 붙습니다.";
+  }
+
+  /* ---------- 저장 ---------- */
+  function queueSave() {
+    clearTimeout(saveTimer);
+    $("#savestate").textContent = "저장 중…";
+    saveTimer = setTimeout(async () => {
+      try {
+        await F.store.mergePrint(me, rec);
+        prints[me] = rec;
+        $("#savestate").textContent = "저장했습니다. 결산과 단원 목록에도 반영됩니다.";
+        chips();
+      } catch (e) {
+        $("#savestate").textContent = "저장하지 못했습니다. 잠시 후 다시 시도해주세요.";
+      }
+    }, 700);
+  }
+
+  /* ---------- 음성 ---------- */
+  async function handleAudio(file) {
+    $("#msg").textContent = "분석 중…";
+    $("#bar").style.width = "5%";
+    try {
+      const a = await F.analyze(await file.arrayBuffer(), p => { $("#bar").style.width = Math.round(p * 100) + "%"; });
+      analysis = a;
+      Object.assign(rec, F.pack(a));
+      paint();
+      $("#msg").textContent = "다 됐습니다. 아래에서 생년월일과 아이콘도 채워주세요.";
+      queueSave();
+    } catch (e) {
+      $("#msg").textContent = "이 파일을 읽지 못했습니다. m4a · mp3 · wav 중 다른 형식으로 시도해주세요.";
+      $("#bar").style.width = "0";
+    }
+  }
+  $("#file").addEventListener("change", e => { const f = e.target.files[0]; if (f) handleAudio(f); });
+  const drop = $("#drop");
+  ["dragenter", "dragover"].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.add("hot"); }));
+  ["dragleave", "drop"].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.remove("hot"); }));
+  drop.addEventListener("drop", e => { const f = e.dataTransfer.files[0]; if (f) handleAudio(f); });
+
+  $("#rec").addEventListener("click", async () => {
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia || !window.MediaRecorder) {
+      $("#recmsg").textContent = "이 브라우저에서는 마이크를 쓸 수 없습니다. 파일로 넣어주세요."; return;
+    }
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const r = new MediaRecorder(stream), chunks = [];
+      r.ondataavailable = e => chunks.push(e.data);
+      r.onstop = () => { stream.getTracks().forEach(t => t.stop()); $("#recmsg").textContent = ""; handleAudio(new Blob(chunks)); };
+      r.start();
+      let left = 15;
+      $("#recmsg").textContent = "녹음 중 " + left + "초 — 편한 음, 낮은 음, 높은 음";
+      const t = setInterval(() => {
+        left--; $("#recmsg").textContent = "녹음 중 " + left + "초";
+        if (left <= 0) { clearInterval(t); r.stop(); }
+      }, 1000);
+    } catch (e) { $("#recmsg").textContent = "마이크 권한이 없습니다. 파일로 넣어주세요."; }
   });
+
+  /* ---------- 내 정보 ---------- */
+  $("#born").addEventListener("change", e => { rec.born = e.target.value || ""; paint(); queueSave(); });
+  $("#joined").addEventListener("change", e => { rec.joined = e.target.value || ""; paint(); queueSave(); });
+
+  /* ---------- 아이콘 ---------- */
+  function icons() {
+    $("#icons").innerHTML = F.ICON_KEYS.map(k =>
+      '<button type="button" data-i="' + k + '" aria-pressed="' + (rec.icon === k) + '" title="' + esc(F.ICONS[k].label) + '">'
+      + '<canvas width="72" height="72"></canvas>'
+      + '<span>' + esc(F.ICONS[k].label) + '</span></button>').join("");
+    F.ICON_KEYS.forEach(k => {
+      const c = $('#icons [data-i="' + k + '"] canvas');
+      const g = c.getContext("2d");
+      g.clearRect(0, 0, 72, 72);
+      F.drawIcon(g, k, 36, 36, 46, rec.icon === k ? "#F8D870" : "#8C8674");
+    });
+  }
+  $("#icons").addEventListener("click", e => {
+    const b = e.target.closest("[data-i]");
+    if (!b) return;
+    rec.icon = (rec.icon === b.dataset.i) ? "" : b.dataset.i;
+    icons(); paint(); queueSave();
+  });
+
+  /* ---------- 배경 · 저장 ---------- */
   function setBg(v) {
     bg = v;
     $("#bg-cream").setAttribute("aria-pressed", String(v === "cream"));
@@ -86,21 +274,45 @@
   $("#bg-cream").addEventListener("click", () => setBg("cream"));
   $("#bg-ink").addEventListener("click", () => setBg("ink"));
   $("#save").addEventListener("click", async () => {
-    const m = F.member(sel);
+    const m = F.member(me);
     const ok = await F.savePNG(canvas, "felicia-" + (m ? m.name : "voiceprint") + ".png");
     $("#msg").textContent = ok ? "저장했습니다." : "저장하지 못했습니다. 이미지를 길게 눌러 저장해주세요.";
   });
 
-  F.mountPageNav($("#pagenav"), "voice");
+  /* ---------- 모두 보기 ---------- */
+  let sel = null;
+  function chips() {
+    $("#chips").innerHTML = TEAM.members.map(m => {
+      const has = !!(prints[m.id] && prints[m.id].env);
+      return '<button data-m="' + m.id + '" aria-pressed="' + (m.id === sel) + '"' + (has ? "" : " disabled") + '>'
+        + esc(m.name) + '<span class="part">' + esc(m.part) + '</span></button>';
+    }).join("");
+    if (sel && !(prints[sel] && prints[sel].env)) sel = null;
+    paint2();
+  }
+  function paint2() {
+    if (!sel) {
+      $("#art2").innerHTML = '<p class="empty">이름을 누르면 그 사람의 지문이 나옵니다.</p>';
+      return;
+    }
+    const p = prints[sel];
+    F.drawArt(canvas2, { memberId: sel, a: F.inflate(p), info: p }, "cream");
+    const m = F.member(sel);
+    $("#art2").innerHTML = '<img class="art" src="' + canvas2.toDataURL("image/png")
+      + '" alt="' + esc(m ? m.name : "") + '의 목소리 지문 로고">';
+  }
+  $("#chips").addEventListener("click", e => {
+    const b = e.target.closest("[data-m]");
+    if (!b || b.disabled) return;
+    sel = (sel === b.dataset.m) ? null : b.dataset.m;
+    chips();
+  });
 
-  (async () => {
-    await F.logo.ready;
-    try { prints = await F.store.getPrints(); } catch (e) { prints = {}; }
-    // 코드를 넣은 적이 있으면 본인부터 보여준다.
-    const me = F.recallMe();
-    sel = (me && prints[me]) ? me : ((TEAM.members.find(m => prints[m.id]) || {}).id || null);
-    chips(); paint();
-  })();
+  /* ---------- 시작 ---------- */
+  F.mountPageNav($("#pagenav"), "voice");
+  const remembered = F.recallMe();
+  if (remembered) enter(remembered);
+  else input.focus();
 })();
 </script>
 </body>

@@ -76,9 +76,10 @@ h3{font-size:12.5px;font-weight:500;letter-spacing:.14em;text-transform:uppercas
 
 .field{display:flex;flex-direction:column;gap:6px;margin-bottom:16px}
 .field > label{font-size:11.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
-input[type=text],textarea,select{
+input[type=text],input[type=date],textarea,select{
   background:var(--ink-2);border:1px solid var(--line);border-radius:2px;padding:11px 12px;width:100%;
 }
+input[type=date]{color-scheme:dark}   /* 달력 아이콘과 팝업이 밝게 뜨지 않도록 */
 textarea{resize:vertical;min-height:140px;line-height:1.7}
 .panel{border:1px solid var(--line);border-radius:3px;padding:22px;margin-bottom:24px;background:var(--ink-2)}
 .panel > h3{margin-top:0}
@@ -230,19 +231,19 @@ textarea{resize:vertical;min-height:140px;line-height:1.7}
 
 .order{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;border-top:1px solid var(--line)}
 .order li{border-bottom:1px solid var(--line)}
-.order button{
-  width:100%;background:none;border:0;cursor:pointer;text-align:left;
+.order button,.order a{
+  width:100%;background:none;border:0;cursor:pointer;text-align:left;text-decoration:none;
   display:grid;grid-template-columns:auto 1fr auto;align-items:baseline;gap:6px 20px;
   padding:20px 4px;transition:background .18s;
 }
-.order button:hover{background:var(--ink-2)}
+.order button:hover,.order a:hover{background:var(--ink-2)}
 .order .idx{font-family:var(--num);font-size:21px;color:var(--gold-deep);font-variant-numeric:tabular-nums}
 .order .ttl{font-family:var(--serif);font-size:20px;color:var(--cream);line-height:1.3}
 .order .sub{grid-column:2;font-size:12.5px;color:var(--muted);margin-top:2px}
 .order .state{font-size:11.5px;letter-spacing:.08em;color:var(--muted-2);white-space:nowrap;align-self:center}
 .order .state.on{color:var(--gold)}
 @media (max-width:560px){
-  .order button{grid-template-columns:auto 1fr;gap:5px 14px}
+  .order button,.order a{grid-template-columns:auto 1fr;gap:5px 14px}
   .order .state{grid-column:2;align-self:start;margin-top:5px}
 }
 
@@ -314,6 +315,19 @@ textarea{resize:vertical;min-height:140px;line-height:1.7}
   transition:color .18s;
 }
 .pn-home:hover{color:var(--gold)}
+
+/* ---------- 아이콘 고르기 ---------- */
+.icon-pick{display:grid;grid-template-columns:repeat(auto-fit,minmax(74px,1fr));gap:10px}
+.icon-pick button{
+  background:none;border:1px solid var(--line);border-radius:3px;cursor:pointer;
+  display:flex;flex-direction:column;align-items:center;gap:6px;padding:12px 6px 10px;
+  transition:border-color .18s,background .18s;
+}
+.icon-pick button:hover{border-color:var(--line-2);background:rgba(248,216,112,.04)}
+.icon-pick button[aria-pressed="true"]{border-color:var(--gold);background:rgba(248,216,112,.07)}
+.icon-pick canvas{width:36px;height:36px;display:block}
+.icon-pick span{font-size:11px;letter-spacing:.06em;color:var(--muted)}
+.icon-pick button[aria-pressed="true"] span{color:var(--gold)}
 
 /* ---------- 확인 코드 ---------- */
 .gate{max-width:380px;margin:0 auto;text-align:center}

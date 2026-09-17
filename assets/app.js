@@ -80,11 +80,96 @@
     return a;
   }
   function inflate(p) {
+    if (!p || !p.env) return null;   // 생년월일만 넣고 녹음은 아직인 경우
     return {
       env: decArr(p.env), bands: decArr(p.bands),
       low: p.low, high: p.high, avg: p.avg, avgHz: p.avgHz,
       seconds: p.seconds, voiced: p.voiced
     };
+  }
+
+  /* ---------- 별자리 ---------- */
+  const ZODIAC = [
+    [20, "물병자리"], [19, "물고기자리"], [21, "양자리"],   [20, "황소자리"],
+    [21, "쌍둥이자리"], [22, "게자리"],   [23, "사자자리"], [23, "처녀자리"],
+    [23, "천칭자리"], [23, "전갈자리"],   [23, "궁수자리"], [22, "염소자리"]
+  ];
+  /** 생년월일(YYYY-MM-DD)로 별자리를 구한다. 경계일 당일은 뒤쪽 별자리. */
+  function zodiac(iso) {
+    if (!iso) return "";
+    const d = new Date(iso + "T00:00:00");
+    if (isNaN(d)) return "";
+    const i = d.getMonth();
+    return d.getDate() >= ZODIAC[i][0] ? ZODIAC[i][1] : ZODIAC[(i + 11) % 12][1];
+  }
+
+  /** 2026-09-23 -> 2026.09.23 */
+  const dotDate = iso => (iso && /^\d{4}-\d{2}-\d{2}$/.test(iso)) ? iso.replace(/-/g, ".") : "";
+
+  /* ---------- 개인 아이콘 ----------
+     캔버스에 직접 그린다. 글꼴에 있는 기호를 쓰면 기기마다 없을 수 있다.
+     각 draw 는 원점이 가운데, 한 변이 1인 상자 안에 그린다고 보고 그린다. */
+  const ICONS = {
+    note: { label: "음표", draw(g) {
+      g.beginPath(); g.ellipse(-0.12, 0.26, 0.19, 0.14, -0.32, 0, Math.PI * 2); g.fill();
+      g.beginPath(); g.moveTo(0.06, 0.26); g.lineTo(0.06, -0.4); g.stroke();
+      g.beginPath(); g.moveTo(0.06, -0.4); g.quadraticCurveTo(0.34, -0.3, 0.3, -0.06); g.stroke();
+    } },
+    star: { label: "별", draw(g) {
+      g.beginPath();
+      g.moveTo(0, -0.46); g.quadraticCurveTo(0.08, -0.08, 0.46, 0);
+      g.quadraticCurveTo(0.08, 0.08, 0, 0.46); g.quadraticCurveTo(-0.08, 0.08, -0.46, 0);
+      g.quadraticCurveTo(-0.08, -0.08, 0, -0.46); g.fill();
+    } },
+    moon: { label: "달", draw(g) {
+      g.beginPath();
+      g.arc(0.04, 0, 0.42, Math.PI * 0.42, Math.PI * 1.58, false);
+      g.quadraticCurveTo(0.2, 0, 0.21, -0.38);
+      g.fill();
+    } },
+    leaf: { label: "잎", draw(g) {
+      g.beginPath();
+      g.moveTo(0, -0.44); g.quadraticCurveTo(0.44, -0.06, 0, 0.44);
+      g.quadraticCurveTo(-0.44, -0.06, 0, -0.44); g.stroke();
+      g.beginPath(); g.moveTo(0, -0.3); g.lineTo(0, 0.36); g.stroke();
+    } },
+    wave: { label: "물결", draw(g) {
+      for (let k = -1; k <= 1; k++) {
+        g.beginPath();
+        g.moveTo(-0.44, k * 0.22);
+        g.bezierCurveTo(-0.15, k * 0.22 - 0.2, 0.15, k * 0.22 + 0.2, 0.44, k * 0.22);
+        g.stroke();
+      }
+    } },
+    flame: { label: "불꽃", draw(g) {
+      g.beginPath();
+      g.moveTo(0, -0.46);
+      g.bezierCurveTo(0.34, -0.1, 0.3, 0.34, 0, 0.44);
+      g.bezierCurveTo(-0.3, 0.34, -0.34, -0.1, 0, -0.46);
+      g.stroke();
+    } },
+    ring: { label: "고리", draw(g) {
+      g.beginPath(); g.arc(0, 0.04, 0.36, 0, Math.PI * 2); g.stroke();
+      g.beginPath(); g.arc(0, -0.38, 0.09, 0, Math.PI * 2); g.fill();
+    } },
+    cross: { label: "십자", draw(g) {
+      g.beginPath(); g.moveTo(0, -0.46); g.lineTo(0, 0.46); g.stroke();
+      g.beginPath(); g.moveTo(-0.3, -0.12); g.lineTo(0.3, -0.12); g.stroke();
+    } }
+  };
+  const ICON_KEYS = Object.keys(ICONS);
+
+  /** 아이콘 하나를 (cx,cy)에 size 크기로 그린다. */
+  function drawIcon(g, key, cx, cy, size, color) {
+    const ic = ICONS[key];
+    if (!ic) return;
+    g.save();
+    g.translate(cx, cy);
+    g.scale(size, size);
+    g.strokeStyle = color; g.fillStyle = color;
+    g.lineWidth = 0.075; g.lineCap = "round"; g.lineJoin = "round";
+    ic.draw(g);
+    g.restore();
   }
 
   /* ======================================================================
@@ -178,6 +263,28 @@
       const j = await r.json();
       if (!j.ok) throw new Error(j.error || "read failed");
       return j.data || {};
+    },
+
+    /** 단원 한 명만 저장한다. 각자 자기 기기에서 만들기 때문에,
+        지도 전체를 덮어쓰면 동시에 만든 사람의 것이 지워질 수 있다. */
+    async mergePrint(id, rec) {
+      if (!ENDPOINT) {
+        const all = lsRead(LS_PRINTS) || {};
+        all[id] = rec;
+        if (!lsWrite(LS_PRINTS, all)) throw new Error("이 브라우저에 저장할 수 없습니다.");
+        return;
+      }
+      const r = await fetch(ENDPOINT, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify({ kind: "prints", action: "merge", id: id, data: rec })
+      });
+      const j = await r.json();
+      if (j.ok) return;
+      // 저장소가 아직 merge 를 모르는 예전 판이면 읽어서 합쳐 다시 쓴다.
+      const all = await store.getPrints();
+      all[id] = rec;
+      await store.putPrints(all);
     },
 
     async putPrints(map) {
@@ -610,25 +717,36 @@
 
     // (5) 캡션 — 로고의 넓은 자간 워드마크와 같은 어법
     const m = vp ? member(vp.memberId) : null;
+    const info = (vp && vp.info) || {};
     g.save();
     g.textAlign = "center"; g.textBaseline = "alphabetic";
     if (m) {
       g.fillStyle = txt;
       g.font = '400 ' + (S * 0.044) + 'px "Gowun Batang", serif';
-      g.fillText(m.name, S / 2, S * 0.815);
+      g.fillText(m.name, S / 2, S * 0.804);
       g.fillStyle = fg;
       g.font = '400 ' + (S * 0.0155) + 'px "IBM Plex Sans KR", sans-serif';
       g.letterSpacing = (S * 0.006).toFixed(1) + "px";
-      g.fillText(m.part.toUpperCase() + (m.role ? "  ·  " + m.role : ""), S / 2, S * 0.855);
+      g.fillText(m.part.toUpperCase() + (m.role ? "  ·  " + m.role : ""), S / 2, S * 0.842);
       g.letterSpacing = "0px";
     }
-    if (a) {
-      g.fillStyle = onCream ? "#7A7159" : "#8C8674";
-      g.font = '300 ' + (S * 0.0145) + 'px "IBM Plex Sans KR", sans-serif';
-      g.letterSpacing = (S * 0.003).toFixed(1) + "px";
-      g.fillText("RANGE " + a.low + "–" + a.high + "   ·   MEDIAN " + a.avg + "   ·   " + a.seconds + "S", S / 2, S * 0.902);
-      g.fillText(TEAM.trip.replace(/-/g, "."), S / 2, S * 0.936);
-      g.letterSpacing = "0px";
+
+    if (info.icon) drawIcon(g, info.icon, S / 2, S * 0.882, S * 0.036, fg);
+
+    const born = dotDate(info.born), joined = dotDate(info.joined);
+    const sign = zodiac(info.born);
+    g.fillStyle = onCream ? "#7A7159" : "#8C8674";
+    g.font = '300 ' + (S * 0.0145) + 'px "IBM Plex Sans KR", sans-serif';
+    g.letterSpacing = (S * 0.003).toFixed(1) + "px";
+    const line = [];
+    if (born) line.push("출생 " + born);
+    if (joined) line.push("입교 " + joined);
+    if (line.length) g.fillText(line.join("   ·   "), S / 2, S * 0.920);
+    g.letterSpacing = "0px";
+    if (sign) {
+      g.fillStyle = fg;
+      g.font = '400 ' + (S * 0.019) + 'px "Gowun Batang", serif';
+      g.fillText(sign, S / 2, S * 0.950);
     }
     g.restore();
   }
@@ -673,6 +791,7 @@
     $, $$, esc, nf, clamp, member,
     encArr, decArr, inflate, pack,
     slides, slideHTML, mountWrapped, paintDots, mountPageNav,
+    zodiac, dotDate, ICONS, ICON_KEYS, drawIcon,
     analyze, drawArt, coverMark, savePNG,
     verifyCode, rememberMe, recallMe, forgetMe, cheersFor
   };

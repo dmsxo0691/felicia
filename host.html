@@ -7,7 +7,7 @@
 <meta name="description" content="FELICIA 1박 2일 첫째 날 밤 진행 화면.">
 <meta name="robots" content="noindex">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300&family=Gowun+Batang:wght@400;700&family=IBM+Plex+Sans+KR:wght@300;400;500&display=swap">
-<link rel="stylesheet" href="assets/app.css?v=7">
+<link rel="stylesheet" href="assets/app.css?v=8">
 </head>
 <body>
 <div class="app">
@@ -16,7 +16,6 @@
     <nav class="nav" id="nav" aria-label="화면 이동">
       <button data-go="home" aria-current="true">순서</button>
       <button data-go="wrapped">결산</button>
-      <button data-go="voice">지문</button>
       <button data-go="cheers">응원</button>
     </nav>
   </header>
@@ -31,11 +30,11 @@
         <p class="lede" id="home-lede"></p>
       </div>
       <ol class="order">
-        <li><button data-go="voice">
-          <span class="idx">01</span><span class="ttl">목소리 지문 만들기</span>
+        <li><a class="order-link" href="voice.html">
+          <span class="idx">01</span><span class="ttl">목소리 지문</span>
           <span class="state" id="st-voice">0/7</span>
-          <span class="sub">낮에 미리. 녹음 파일을 넣으면 분석해서 로고 뒤에 얹습니다. 여기서 만든 음역이 결산에도 들어갑니다.</span>
-        </button></li>
+          <span class="sub">단원들이 각자 확인 코드로 들어가 직접 만듭니다. 여기서 만든 음역이 결산에도 들어갑니다.</span>
+        </a></li>
         <li><button data-go="wrapped">
           <span class="idx">02</span><span class="ttl">결산 상영</span>
           <span class="state on">← → 키</span>
@@ -63,51 +62,6 @@
       </div>
     </section>
 
-    <!-- 지문 -->
-    <section id="view-voice" class="wrap" hidden>
-      <div class="head">
-        <p class="eyebrow">01 — 목소리 지문 로고</p>
-        <h1>목소리 지문 만들기</h1>
-        <p class="lede">녹음 파일을 넣으면 진폭과 주파수를 분석해 로고 뒤에 반투명 방사형 지문으로 얹습니다. 폰 음성 녹음기로 15~30초면 충분하고, <b>편한 음 → 낮은 음 → 높은 음</b>을 한 번씩 내게 하면 음역이 제대로 나옵니다.</p>
-      </div>
-      <div class="vp">
-        <div>
-          <div class="field">
-            <label for="vp-member">단원</label>
-            <select id="vp-member"></select>
-          </div>
-          <label class="drop" id="vp-drop" for="vp-file">
-            <input type="file" id="vp-file" accept="audio/*" hidden>
-            <b style="color:var(--gold);font-weight:400">녹음 파일 선택</b>
-            <span class="tiny" style="display:block;margin-top:6px">m4a · mp3 · wav · 끌어다 놓아도 됩니다</span>
-          </label>
-          <div class="row" style="margin-top:12px">
-            <button class="btn" id="vp-rec">마이크로 15초 녹음</button>
-            <span class="tiny" id="vp-recmsg"></span>
-          </div>
-          <div class="bar"><i id="vp-bar"></i></div>
-          <ul class="stats" id="vp-stats" hidden></ul>
-
-          <div class="field" style="margin-top:22px">
-            <label>배경</label>
-            <div class="seg" role="group" aria-label="배경">
-              <button id="vp-bg-cream" aria-pressed="true">아이보리 (인쇄용)</button>
-              <button id="vp-bg-ink" aria-pressed="false">먹색 (화면용)</button>
-            </div>
-          </div>
-          <div class="row">
-            <button class="btn solid" id="vp-save" disabled>PNG로 저장</button>
-            <button class="btn ghost" id="vp-export">전체 백업 내려받기</button>
-          </div>
-          <p class="note" id="vp-msg"></p>
-          <ul class="done-list" id="vp-done"></ul>
-        </div>
-        <div>
-          <div class="vp-box"><canvas id="vp-canvas" width="2048" height="2048"></canvas></div>
-          <p class="tiny" style="margin-top:10px">미리보기. 저장 파일은 2048×2048 PNG입니다.</p>
-        </div>
-      </div>
-    </section>
 
     <!-- 응원 -->
     <section id="view-cheers" class="wrap" hidden>
@@ -125,7 +79,7 @@
   </main>
 </div>
 
-<script src="assets/app.js?v=7"></script>
+<script src="assets/app.js?v=8"></script>
 <script>
 (() => {
   "use strict";
@@ -139,7 +93,7 @@
   if (!F.store.remote) $("#local-warn").hidden = false;
 
   /* ---------- 화면 이동 ---------- */
-  const VIEWS = ["home", "wrapped", "voice", "cheers"];
+  const VIEWS = ["home", "wrapped", "cheers"];
   let view = "home";
   function go(v) {
     view = v;
@@ -160,122 +114,6 @@
     keys: true, active: () => view === "wrapped"
   });
   $("#wr-stage").classList.add("wrap");
-
-  /* ---------- 지문 ---------- */
-  let prints = {}, current = null, bg = "cream";
-
-  function memberOptions() {
-    $("#vp-member").innerHTML = TEAM.members.map(m =>
-      '<option value="' + m.id + '">' + esc(m.name) + " · " + esc(m.part) + "</option>").join("");
-  }
-  function renderDone() {
-    const n = TEAM.members.filter(m => prints[m.id]).length;
-    $("#st-voice").textContent = n + "/" + TEAM.members.length;
-    $("#st-voice").classList.toggle("on", n > 0);
-    $("#vp-done").innerHTML = TEAM.members.map(m =>
-      '<span class="' + (prints[m.id] ? "on" : "") + '">' + esc(m.name) + (prints[m.id] ? " ✓" : "") + "</span>").join("");
-  }
-  function showStats(p) {
-    $("#vp-stats").hidden = false;
-    $("#vp-stats").innerHTML =
-      '<li><span>음역</span><b>' + esc(p.low) + " – " + esc(p.high) + '</b></li>'
-      + '<li><span>중간 음높이</span><b>' + esc(p.avg) + " · " + p.avgHz + 'Hz</b></li>'
-      + '<li><span>길이</span><b>' + p.seconds + '초</b></li>'
-      + '<li><span>유성음 구간</span><b>' + p.voiced + '</b></li>';
-  }
-  function paint() { F.drawArt($("#vp-canvas"), current, bg); }
-
-  async function handleAudio(file) {
-    const mid = $("#vp-member").value;
-    if (!mid) return;
-    $("#vp-msg").textContent = "분석 중…";
-    $("#vp-bar").style.width = "5%";
-    try {
-      const a = await F.analyze(await file.arrayBuffer(), p => { $("#vp-bar").style.width = Math.round(p * 100) + "%"; });
-      current = { memberId: mid, a };
-      prints[mid] = F.pack(a);
-      showStats(prints[mid]);
-      paint();
-      renderDone();
-      wrapped.setPrints(prints);
-      $("#vp-save").disabled = false;
-      $("#vp-msg").textContent = "분석 완료. 저장하는 중…";
-      try {
-        await F.store.putPrints(prints);
-        $("#vp-msg").textContent = F.store.remote
-          ? "완료. 단원 페이지에도 반영되었습니다."
-          : "완료. 저장소가 없어 이 기기에만 있습니다.";
-      } catch (e) {
-        $("#vp-msg").textContent = "그림은 나왔지만 저장에 실패했습니다. 백업을 내려받아 두세요.";
-      }
-    } catch (e) {
-      $("#vp-msg").textContent = "이 파일을 읽지 못했습니다. m4a · mp3 · wav 중 다른 형식으로 시도해주세요.";
-      $("#vp-bar").style.width = "0";
-    }
-  }
-
-  $("#vp-file").addEventListener("change", e => { const f = e.target.files[0]; if (f) handleAudio(f); });
-  const drop = $("#vp-drop");
-  ["dragenter", "dragover"].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.add("hot"); }));
-  ["dragleave", "drop"].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.remove("hot"); }));
-  drop.addEventListener("drop", e => { const f = e.dataTransfer.files[0]; if (f) handleAudio(f); });
-
-  $("#vp-member").addEventListener("change", () => {
-    const mid = $("#vp-member").value;
-    current = prints[mid] ? { memberId: mid, a: F.inflate(prints[mid]) } : null;
-    if (current) showStats(prints[mid]); else $("#vp-stats").hidden = true;
-    $("#vp-save").disabled = !current;
-    paint();
-  });
-
-  $("#vp-rec").addEventListener("click", async () => {
-    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia || !window.MediaRecorder) {
-      $("#vp-recmsg").textContent = "이 브라우저에서는 마이크를 쓸 수 없습니다. 파일로 넣어주세요."; return;
-    }
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const rec = new MediaRecorder(stream), chunks = [];
-      rec.ondataavailable = e => chunks.push(e.data);
-      rec.onstop = () => {
-        stream.getTracks().forEach(t => t.stop());
-        $("#vp-recmsg").textContent = "";
-        handleAudio(new Blob(chunks));
-      };
-      rec.start();
-      let left = 15;
-      $("#vp-recmsg").textContent = "녹음 중 " + left + "초 — 편한 음, 낮은 음, 높은 음을 한 번씩";
-      const t = setInterval(() => {
-        left--;
-        $("#vp-recmsg").textContent = "녹음 중 " + left + "초";
-        if (left <= 0) { clearInterval(t); rec.stop(); }
-      }, 1000);
-    } catch (e) { $("#vp-recmsg").textContent = "마이크 권한이 없습니다. 파일로 넣어주세요."; }
-  });
-
-  function setBg(v) {
-    bg = v;
-    $("#vp-bg-cream").setAttribute("aria-pressed", String(v === "cream"));
-    $("#vp-bg-ink").setAttribute("aria-pressed", String(v === "ink"));
-    paint();
-  }
-  $("#vp-bg-cream").addEventListener("click", () => setBg("cream"));
-  $("#vp-bg-ink").addEventListener("click", () => setBg("ink"));
-
-  $("#vp-save").addEventListener("click", async () => {
-    const m = F.member(current && current.memberId);
-    const ok = await F.savePNG($("#vp-canvas"), "felicia-" + (m ? m.name : "voiceprint") + ".png");
-    $("#vp-msg").textContent = ok ? "저장했습니다." : "저장하지 못했습니다.";
-  });
-
-  $("#vp-export").addEventListener("click", () => {
-    const blob = new Blob([JSON.stringify(prints, null, 2)], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url; a.download = "felicia-prints.json";
-    document.body.appendChild(a); a.click(); a.remove();
-    setTimeout(() => URL.revokeObjectURL(url), 5000);
-    $("#vp-msg").textContent = "백업을 내려받았습니다.";
-  });
 
   /* ---------- 응원 ---------- */
   let cheersLoaded = false;
@@ -304,18 +142,13 @@
   $("#cheer-reload").addEventListener("click", () => { cheersLoaded = false; loadCheers(); });
 
   /* ---------- 시작 ---------- */
-  memberOptions(); renderDone(); F.logo.ready.then(paint);
   (async () => {
+    let prints = {};
     try { prints = await F.store.getPrints(); } catch (e) { prints = {}; }
-    renderDone();
-    wrapped.setPrints(prints);
-    const mid = $("#vp-member").value;
-    if (prints[mid]) {
-      current = { memberId: mid, a: F.inflate(prints[mid]) };
-      showStats(prints[mid]);
-      $("#vp-save").disabled = false;
-    }
-    paint();
+    const done = TEAM.members.filter(m => prints[m.id] && prints[m.id].env).length;
+    $("#st-voice").textContent = done + "/" + TEAM.members.length;
+    $("#st-voice").classList.toggle("on", done > 0);
+    wrapped.setPrints(prints);   // 결산 개인 슬라이드의 음역
     loadCheers();
   })();
 })();

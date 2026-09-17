@@ -126,6 +126,31 @@ function doPost(e) {
       return json_({ ok: true });
     }
 
+    // 단원 한 명만 고쳐 넣습니다. 각자 자기 기기에서 만들기 때문에
+    // 지도 전체를 덮어쓰면 동시에 만든 사람의 것이 지워집니다.
+    if (body.kind === "prints" && body.action === "merge") {
+      var id = String(body.id || "");
+      if (!id) return json_({ ok: false, error: "id 가 필요합니다." });
+
+      var lock = LockService.getScriptLock();
+      try { lock.waitLock(15000); } catch (e) {
+        return json_({ ok: false, error: "저장소가 사용 중입니다. 잠시 후 다시 시도해주세요." });
+      }
+      try {
+        var sh = sheetNamed_("prints");
+        var cur = sh.getRange(1, 1).getValue();
+        var map = {};
+        if (cur) { try { map = JSON.parse(cur); } catch (e2) { map = {}; } }
+        map[id] = body.data || {};
+        var out = JSON.stringify(map);
+        if (out.length > 45000) return json_({ ok: false, error: "분석 결과가 너무 큽니다." });
+        sh.getRange(1, 1).setValue(out);
+        return json_({ ok: true });
+      } finally {
+        lock.releaseLock();
+      }
+    }
+
     return json_({ ok: false, error: "bad request" });
   } catch (err) {
     return json_({ ok: false, error: String(err) });
