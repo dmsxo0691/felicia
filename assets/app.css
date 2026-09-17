@@ -101,16 +101,18 @@ textarea{resize:vertical;min-height:140px;line-height:1.7}
 .wr-slide{max-width:680px;width:100%}
 .wr-kicker{font-size:11px;letter-spacing:.32em;text-transform:uppercase;color:var(--gold-deep);margin:0 0 24px;min-height:1em}
 .wr-lead{font-family:var(--serif);font-size:clamp(18px,3.3vw,26px);line-height:1.55;margin:0 0 6px;text-wrap:balance}
+/* Cormorant 의 숫자는 올드스타일이라 5·6·0 의 어센더와 디센더가 행상자를 넘는다.
+   행간을 좁히면 아래의 단위 줄과 겹치므로, 넉넉한 행간과 간격을 함께 준다. */
 .wr-big{
-  font-family:var(--num);font-weight:300;font-size:clamp(64px,16vw,176px);line-height:.92;
-  color:var(--gold);letter-spacing:-.03em;font-variant-numeric:tabular-nums;margin:12px 0 4px;
+  font-family:var(--num);font-weight:300;font-size:clamp(64px,16vw,176px);line-height:1.1;
+  color:var(--gold);letter-spacing:-.03em;font-variant-numeric:tabular-nums;
+  margin:14px 0 0;padding-bottom:.06em;
 }
-.wr-unit{font-family:var(--serif);font-size:clamp(16px,2.5vw,21px);color:var(--cream);margin:0 0 10px;text-wrap:balance}
-.wr-foot{font-size:13.5px;color:var(--muted);margin:20px auto 0;max-width:46ch}
+.wr-unit{font-family:var(--serif);font-size:clamp(16px,2.5vw,21px);color:var(--cream);margin:16px 0 0;text-wrap:balance}
+.wr-foot{font-size:13.5px;color:var(--muted);margin:26px auto 0;max-width:46ch}
 .wr-quiet .wr-big{font-size:clamp(44px,10vw,100px);color:var(--cream)}
 .wr-words{display:flex;flex-wrap:wrap;gap:8px 10px;justify-content:center;margin:20px 0 0}
 .wr-words span{border:1px solid var(--line-2);border-radius:999px;padding:5px 15px;font-size:14px;color:var(--gold-soft)}
-.wr-absent .wr-lead{color:var(--muted)}
 .wr-nav{display:flex;align-items:center;justify-content:center;gap:16px;flex-wrap:wrap}
 .wr-dots{display:flex;gap:5px;flex-wrap:wrap;justify-content:center;max-width:340px}
 .wr-dots i{width:5px;height:5px;border-radius:50%;background:var(--ink-3);display:block}
@@ -225,3 +227,49 @@ textarea{resize:vertical;min-height:140px;line-height:1.7}
 .msg-list .t{font-family:var(--serif);font-size:17px;margin:0 0 6px;color:var(--gold)}
 .msg-list .b{font-size:14px;margin:0 0 6px;color:#CFC8B4;white-space:pre-wrap}
 .msg-list .f{font-size:12.5px;color:var(--muted);margin:0}
+
+/* ---------- 허브 (단원 첫 화면) ---------- */
+.entries{list-style:none;margin:0;padding:0;border-top:1px solid var(--line)}
+.entries li{border-bottom:1px solid var(--line)}
+.entries a{
+  display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:4px 20px;
+  padding:24px 4px;text-decoration:none;transition:background .18s;
+}
+.entries a:hover{background:var(--ink-2)}
+.entries .idx{font-family:var(--num);font-size:21px;color:var(--gold-deep);font-variant-numeric:tabular-nums}
+.entries .ttl{font-family:var(--serif);font-size:21px;color:var(--cream);line-height:1.3}
+.entries .sub{grid-column:2;font-size:12.5px;color:var(--muted)}
+.entries .arrow{color:var(--gold-deep);font-size:16px}
+@media (max-width:520px){
+  .entries a{grid-template-columns:auto 1fr;gap:4px 14px}
+  .entries .arrow{display:none}
+}
+
+/* ---------- 페이지 사이 이동 ---------- */
+.pagenav{
+  border-top:1px solid var(--line);padding:22px 20px 44px;
+  display:flex;gap:10px;flex-wrap:wrap;justify-content:center;align-items:center;
+}
+.pagenav a{
+  text-decoration:none;font-size:12.5px;letter-spacing:.04em;color:var(--muted);
+  padding:7px 14px;border-radius:999px;transition:color .18s,background .18s;
+}
+.pagenav a:hover{color:var(--cream);background:var(--ink-2)}
+.pagenav a[aria-current="page"]{color:var(--gold);background:var(--ink-3)}
+
+/* ---------- 확인 코드 ---------- */
+.gate{max-width:380px;margin:0 auto;text-align:center}
+.gate h2{margin-bottom:10px}
+.code-in{
+  font-family:var(--num);font-size:42px;letter-spacing:.42em;text-align:center;
+  padding:14px 0 14px .42em;width:100%;
+  background:var(--ink-2);border:1px solid var(--line-2);border-radius:2px;color:var(--gold);
+  font-variant-numeric:tabular-nums;
+}
+.code-in::placeholder{color:var(--muted-2);letter-spacing:.42em}
+.gate-msg{font-size:13px;color:#E2A0A0;margin:14px 0 0;min-height:1.4em}
+.whoami{
+  display:flex;align-items:center;gap:10px;justify-content:center;flex-wrap:wrap;
+  font-size:13px;color:var(--muted);margin:0 0 24px;
+}
+.whoami b{font-family:var(--serif);font-size:17px;color:var(--gold);font-weight:400}

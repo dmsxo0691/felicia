@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>나에게 온 응원 — FELICIA</title>
+<meta name="description" content="확인 코드를 넣으면 나에게 온 응원 메시지만 보입니다.">
+<meta name="robots" content="noindex">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300&family=Gowun+Batang:wght@400;700&family=IBM+Plex+Sans+KR:wght@300;400;500&display=swap">
+<link rel="stylesheet" href="assets/app.css">
+</head>
+<body>
+<div class="app">
+
+  <!-- 코드 입력 -->
+  <section class="sec" id="gate-sec" style="border-top:0">
+    <div class="sec-in">
+      <div class="gate">
+        <p class="eyebrow">03</p>
+        <h2>나에게 온 응원</h2>
+        <p class="tiny" style="margin:0 0 26px">받으신 네 자리 확인 코드를 넣어주세요.</p>
+        <label for="code" class="tiny" style="display:block;margin-bottom:10px;letter-spacing:.12em;text-transform:uppercase">확인 코드</label>
+        <input class="code-in" type="text" id="code" inputmode="numeric" autocomplete="off"
+               maxlength="4" pattern="[0-9]*" placeholder="····" aria-describedby="gate-msg">
+        <p class="gate-msg" id="gate-msg" role="status"></p>
+        <div class="row" style="justify-content:center;margin-top:6px">
+          <button class="btn solid lg" id="enter">확인</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 응원 보기 -->
+  <section class="sec" id="view-sec" style="border-top:0" hidden>
+    <div class="sec-in">
+      <p class="eyebrow center">03</p>
+      <h2>나에게 온 응원</h2>
+      <p class="whoami" id="whoami"></p>
+      <div class="cheer-stage" id="stage"><p class="empty">불러오는 중…</p></div>
+      <div class="wr-nav" style="margin-top:18px">
+        <button class="btn ghost" id="prev">이전</button>
+        <div class="wr-dots" id="dots"></div>
+        <button class="btn" id="next">다음</button>
+      </div>
+    </div>
+  </section>
+
+  <nav class="pagenav" aria-label="페이지 이동">
+    <a href="index.html">처음</a>
+    <a href="voice.html">목소리 지문</a>
+    <a href="wrapped.html">우리의 결산</a>
+    <a href="mycheers.html" aria-current="page">나에게 온 응원</a>
+  </nav>
+</div>
+
+<script src="assets/app.js"></script>
+<script>
+(() => {
+  "use strict";
+  const F = window.FELICIA;
+  const { $, esc } = F;
+
+  let me = null, list = [], idx = 0, open = false;
+
+  /* ---------- 코드 ---------- */
+  const input = $("#code");
+  async function tryCode() {
+    const id = await F.verifyCode(input.value);
+    if (!id) {
+      $("#gate-msg").textContent = "코드가 맞지 않습니다. 다시 확인해주세요.";
+      input.select();
+      return;
+    }
+    F.rememberMe(id);
+    enter(id);
+  }
+  input.addEventListener("input", () => {
+    input.value = input.value.replace(/\D/g, "").slice(0, 4);
+    $("#gate-msg").textContent = "";
+    if (input.value.length === 4) tryCode();   // 네 자리가 채워지면 바로 확인
+  });
+  input.addEventListener("keydown", e => { if (e.key === "Enter") tryCode(); });
+  $("#enter").addEventListener("click", tryCode);
+
+  /* ---------- 보기 ---------- */
+  function enter(id) {
+    me = id;
+    const m = F.member(id);
+    $("#gate-sec").hidden = true;
+    $("#view-sec").hidden = false;
+    $("#whoami").innerHTML = '<b>' + esc(m.name) + '</b><span>' + esc(m.part)
+      + '</span><button class="btn ghost" id="switch" style="font-size:11px">내가 아닙니다</button>';
+    $("#switch").addEventListener("click", () => {
+      F.forgetMe();
+      me = null; list = []; idx = 0; open = false;
+      input.value = "";
+      $("#view-sec").hidden = true;
+      $("#gate-sec").hidden = false;
+      input.focus();
+    });
+    load();
+  }
+
+  async function load() {
+    try {
+      const all = await F.store.getCheers();
+      all.sort((a, b) => String(a.at).localeCompare(String(b.at)));
+      list = F.cheersFor(all, me);
+    } catch (e) {
+      $("#stage").innerHTML = '<p class="empty">응원을 불러오지 못했습니다. 잠시 후 다시 열어주세요.</p>';
+      return;
+    }
+    idx = 0; open = false;
+    paint();
+  }
+
+  function paint() {
+    const stage = $("#stage");
+    if (!list.length) {
+      stage.innerHTML = '<p class="empty">아직 도착한 응원이 없습니다.</p>';
+      $("#dots").innerHTML = "";
+      $("#prev").disabled = true;
+      $("#next").disabled = true;
+      return;
+    }
+    idx = F.clamp(idx, 0, list.length - 1);
+    const c = list[idx];
+    stage.innerHTML =
+      '<p class="cheer-to">' + (c.to === "team" ? "우리 모두에게" : "나에게") + "</p>"
+      + '<button class="cheer-title" id="title">' + esc(c.title) + "</button>"
+      + (open
+          ? '<p class="cheer-body fadein">' + esc(c.body) + "</p>"
+            + '<p class="cheer-from fadein">— ' + esc(c.from || "익명") + "</p>"
+          : '<p class="cheer-hint">제목을 누르면 내용이 열립니다</p>');
+    $("#title").addEventListener("click", () => { open = !open; paint(); });
+    $("#dots").innerHTML = list.map((_, i) => '<i class="' + (i === idx ? "on" : "") + '"></i>').join("");
+    $("#prev").disabled = idx === 0;
+    $("#next").disabled = false;
+    $("#next").textContent = idx === list.length - 1 ? "처음으로" : "다음";
+  }
+
+  $("#next").addEventListener("click", () => { if (list.length) { idx = (idx + 1) % list.length; open = false; paint(); } });
+  $("#prev").addEventListener("click", () => { if (list.length) { idx = (idx - 1 + list.length) % list.length; open = false; paint(); } });
+
+  /* ---------- 시작 ---------- */
+  const remembered = F.recallMe();
+  if (remembered) enter(remembered);
+  else input.focus();
+})();
+</script>
+</body>
+</html>

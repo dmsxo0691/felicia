@@ -21,7 +21,7 @@
       { id: "jeongeun",name: "서정은",     part: "Soprano" },
       { id: "sumin",   name: "박수민",     part: "Alto" },
       { id: "euntae",  name: "박은태",     part: "Tenor",  role: "팀장" },
-      { id: "jaebin",  name: "신재빈",     part: "Bass",   absent: true },
+      { id: "jaebin",  name: "신재빈",     part: "Bass" },
       { id: "dohyung", name: "이도형",     part: "Bass" },
       { id: "solchan", name: "강솔찬마루", part: "Bass" }
     ]
@@ -52,7 +52,6 @@
       days, practiceH, stageMin, ratio, personH,
       years: days / 365.25,
       practiceDays: practiceH / 24,
-      attending: TEAM.members.filter(m => !m.absent).length,
       total: TEAM.members.length,
       foundedLabel: fd.getFullYear() + "년 " + (fd.getMonth() + 1) + "월 " + fd.getDate() + "일",
       tripLabel: (td.getMonth() + 1) + "월 " + td.getDate() + "일"
@@ -87,6 +86,53 @@
       seconds: p.seconds, voiced: p.voiced
     };
   }
+
+  /* ======================================================================
+     3-2. 단원 확인 코드
+     네 자리 코드를 평문으로 두면 공개된 소스에서 그대로 읽힙니다. 그래서
+     "felicia:<단원id>:<코드>" 의 SHA-256 앞 32자만 싣고, 입력한 코드를
+     같은 방식으로 해시해 맞춰봅니다. 원본 코드는 어디에도 들어 있지 않습니다.
+     다만 네 자리는 만 가지뿐이므로 작정하면 전부 시도해볼 수 있습니다 —
+     소스를 들여다본 사람이 코드를 바로 읽지 못하게 막는 수준입니다.
+     ====================================================================== */
+  const CODE_HASH = {
+    "8fae3bf3576f1644c86049fa53feec93": "soyeon",
+    "2ad8930af5a37ca37f98d7708437e8a7": "jeongeun",
+    "95ade685cbd78e19d8519e619b2cb0af": "sumin",
+    "e6031a9f2a337215ebf37ab3f0cf8a99": "euntae",
+    "b97b41de36b1ee9400d79b01207efae9": "jaebin",
+    "8a1c03617126cfabefb73e8c540eaf18": "dohyung",
+    "d1a36c5eae716dc9137abf4e18d7dfff": "solchan"
+  };
+  const LS_ME = "felicia.me";
+
+  async function sha256hex(str) {
+    const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(str));
+    return [...new Uint8Array(buf)].map(b => b.toString(16).padStart(2, "0")).join("");
+  }
+
+  /** 코드를 확인해 단원 id 를 돌려줍니다. 맞는 사람이 없으면 null. */
+  async function verifyCode(code) {
+    const clean = String(code || "").replace(/\D/g, "");
+    if (clean.length !== 4) return null;
+    for (const m of TEAM.members) {
+      const h = await sha256hex("felicia:" + m.id + ":" + clean);
+      if (CODE_HASH[h.slice(0, 32)] === m.id) return m.id;
+    }
+    return null;
+  }
+
+  const rememberMe = id => { try { localStorage.setItem(LS_ME, id); } catch (e) {} };
+  const recallMe = () => {
+    try {
+      const id = localStorage.getItem(LS_ME);
+      return id && member(id) ? id : null;
+    } catch (e) { return null; }
+  };
+  const forgetMe = () => { try { localStorage.removeItem(LS_ME); } catch (e) {} };
+
+  /** 그 단원에게 온 응원 + 모두에게 온 응원. */
+  const cheersFor = (list, id) => list.filter(c => c.to === id || c.to === "team");
 
   /* ======================================================================
      4. 저장소 — Apps Script 웹앱이 있으면 거기에, 없으면 이 기기에
@@ -179,11 +225,9 @@
 
     TEAM.members.forEach((m, i) => {
       out.push({
-        kick: "단원 " + String(i + 1).padStart(2, "0") + " · " + m.part + (m.role ? " · " + m.role : "") + (m.absent ? " · 오늘은 함께 있지 않음" : ""),
+        kick: "단원 " + String(i + 1).padStart(2, "0") + " · " + m.part + (m.role ? " · " + m.role : ""),
         member: m.name,
-        memberId: m.id,
-        absent: !!m.absent,
-        foot: m.absent ? "이번 여행에는 함께 오지 못했습니다. 그래도 " + nf(s.practiceH) + "시간 안에는 있습니다." : ""
+        memberId: m.id
       });
     });
 
@@ -199,14 +243,14 @@
       html += '<p class="wr-lead">' + esc(s.member) + "</p>";
       const p = prints && prints[s.memberId];
       if (p) html += '<div class="wr-big" style="font-size:clamp(32px,6.5vw,68px)">' + esc(p.low + " – " + p.high) + "</div>";
-      else html += '<p class="wr-unit">' + esc(s.absent ? "" : "목소리 지문 준비 중") + "</p>";
+      else html += '<p class="wr-unit">목소리 지문 준비 중</p>';
     } else {
       if (s.lead) html += '<p class="wr-lead">' + esc(s.lead).replace(/\n/g, "<br>") + "</p>";
       if (s.big) html += '<div class="wr-big">' + esc(s.big) + "</div>";
       if (s.unit) html += '<p class="wr-unit">' + esc(s.unit) + "</p>";
     }
     let foot = s.foot;
-    if (s.member && prints && prints[s.memberId] && !s.absent) foot = "오늘 측정한 음역입니다.";
+    if (s.member && prints && prints[s.memberId]) foot = "오늘 측정한 음역입니다.";
     if (foot) html += '<p class="wr-foot">' + esc(foot) + "</p>";
     return '<div class="wr-slide fadein">' + html + "</div>";
   }
@@ -218,7 +262,7 @@
 
     function paint() {
       const s = arr[idx];
-      stageEl.className = "wr" + (s.quiet ? " wr-quiet" : "") + (s.absent ? " wr-absent" : "");
+      stageEl.className = "wr" + (s.quiet ? " wr-quiet" : "");
       stageEl.innerHTML = slideHTML(s, prints);
       if (dotsEl) dotsEl.innerHTML = arr.map((_, i) => '<i class="' + (i === idx ? "on" : "") + '"></i>').join("");
       if (prevEl) prevEl.disabled = idx === 0;
@@ -577,6 +621,7 @@
     $, $$, esc, nf, clamp, member,
     encArr, decArr, inflate, pack,
     slides, slideHTML, mountWrapped,
-    analyze, drawArt, coverMark, savePNG
+    analyze, drawArt, coverMark, savePNG,
+    verifyCode, rememberMe, recallMe, forgetMe, cheersFor
   };
 })(window);

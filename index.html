@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>FELICIA</title>
-<meta name="description" content="중창단 FELICIA — 우리의 결산, 목소리 지문, 그리고 응원 메시지.">
+<meta name="description" content="중창단 FELICIA — 목소리 지문, 우리의 결산, 우리에게 온 응원.">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300&family=Gowun+Batang:wght@400;700&family=IBM+Plex+Sans+KR:wght@300;400;500&display=swap">
 <link rel="stylesheet" href="assets/app.css">
 </head>
@@ -13,221 +13,39 @@
 
   <div class="cover">
     <div class="mark" id="mark"></div>
-    <p class="sub" id="cover-sub">우리의 결산</p>
-    <p class="date" id="cover-date"></p>
   </div>
 
-  <!-- 내 목소리 지문 -->
-  <section class="sec">
+  <section class="sec" style="border-top:0;padding-top:0">
     <div class="sec-in">
-      <h2>내 목소리 지문</h2>
-      <p class="tiny sec-note">이름을 누르면 그 사람의 로고가 나옵니다. 같은 로고, 일곱 개의 다른 로고.</p>
-      <div class="chips" id="vp-chips" role="group" aria-label="단원 선택"></div>
-      <div class="art-box" id="vp-art"></div>
-      <ul class="stats" id="vp-stats" hidden></ul>
-      <div class="row" style="margin-top:18px;justify-content:center">
-        <button class="btn" id="vp-save" disabled>PNG로 저장</button>
-        <div class="seg" role="group" aria-label="배경">
-          <button id="vp-bg-cream" aria-pressed="true">아이보리</button>
-          <button id="vp-bg-ink" aria-pressed="false">먹색</button>
-        </div>
-      </div>
-      <p class="note center" id="vp-msg">휴대폰에서는 이미지를 길게 눌러 저장할 수도 있습니다.</p>
-    </div>
-  </section>
-
-  <!-- 결산 다시보기 -->
-  <section class="sec">
-    <div class="sec-in">
-      <h2>결산 다시보기</h2>
-      <p class="tiny sec-note">그날 밤 봤던 순서 그대로입니다.</p>
-      <div class="card-box"><div class="wr" id="wr-stage"></div></div>
-      <div class="wr-nav" style="margin-top:18px">
-        <button class="btn ghost" id="wr-prev">이전</button>
-        <div class="wr-dots" id="wr-dots"></div>
-        <button class="btn" id="wr-next">다음</button>
-      </div>
-    </div>
-  </section>
-
-  <!-- 응원 메시지 -->
-  <section class="sec">
-    <div class="sec-in">
-      <h2>우리에게 온 응원</h2>
-      <p class="tiny sec-note">제목을 눌러 펼쳐보세요.</p>
-      <div class="chips" id="cheer-filter" role="group" aria-label="받는 사람으로 보기" style="margin-bottom:20px"></div>
-      <div class="cheer-stage" id="cheer-stage">
-        <p class="empty">불러오는 중…</p>
-      </div>
-      <div class="wr-nav" style="margin-top:18px">
-        <button class="btn ghost" id="cheer-prev">이전</button>
-        <div class="wr-dots" id="cheer-dots"></div>
-        <button class="btn" id="cheer-next">다음</button>
-      </div>
-      <div class="row" style="margin-top:22px;justify-content:center">
-        <a class="btn solid" href="cheer.html">응원 메시지 남기기</a>
+      <ol class="entries">
+        <li><a href="voice.html">
+          <span class="idx">01</span><span class="ttl">목소리 지문</span><span class="arrow">→</span>
+          <span class="sub">내 목소리를 분석해 만든 로고. 내려받아 간직하세요.</span>
+        </a></li>
+        <li><a href="wrapped.html">
+          <span class="idx">02</span><span class="ttl">우리의 결산</span><span class="arrow">→</span>
+          <span class="sub">884일, 640시간, 그리고 650분.</span>
+        </a></li>
+        <li><a href="mycheers.html">
+          <span class="idx">03</span><span class="ttl">나에게 온 응원</span><span class="arrow">→</span>
+          <span class="sub">확인 코드를 넣으면 내게 온 응원만 보입니다.</span>
+        </a></li>
+      </ol>
+      <div class="row" style="margin-top:28px;justify-content:center">
+        <a class="btn ghost" href="cheer.html" style="font-size:12px">응원 메시지 남기기</a>
       </div>
     </div>
   </section>
 
   <div class="foot">
-    <p class="tiny" style="margin:0">FELICIA · <span id="foot-date"></span></p>
+    <p class="tiny" style="margin:0">FELICIA</p>
     <a class="btn ghost" href="host.html" style="font-size:11px">운영자 화면</a>
   </div>
 </div>
 
 <script src="assets/app.js"></script>
 <script>
-(() => {
-  "use strict";
-  const F = window.FELICIA;
-  const { $, esc, nf, TEAM } = F;
-  const s = F.stats();
-
-  /* ---------- 표지 ---------- */
-  $("#cover-date").textContent = TEAM.trip.replace(/-/g, ".") + " · 1박 2일 · " + s.attending + "명 참여";
-  $("#foot-date").textContent = TEAM.trip.replace(/-/g, ".");
-  F.logo.ready.then(() => {
-    F.coverMark($("#mark"));
-    paintArt();
-  });
-
-  /* ---------- 지문 ---------- */
-  const canvas = document.createElement("canvas");
-  canvas.width = canvas.height = 2048;
-  let prints = {}, sel = null, bg = "cream";
-
-  function chips() {
-    $("#vp-chips").innerHTML = TEAM.members.map(m => {
-      const has = !!prints[m.id];
-      return '<button data-m="' + m.id + '" aria-pressed="' + (m.id === sel) + '"' + (has ? "" : " disabled") + '>'
-        + esc(m.name) + '<span class="part">' + esc(m.part) + '</span></button>';
-    }).join("");
-  }
-
-  function paintArt() {
-    if (!sel || !prints[sel]) {
-      $("#vp-art").innerHTML = '<p class="empty">아직 목소리 지문이 준비되지 않았습니다.</p>';
-      $("#vp-stats").hidden = true;
-      $("#vp-save").disabled = true;
-      return;
-    }
-    const p = prints[sel];
-    F.drawArt(canvas, { memberId: sel, a: F.inflate(p) }, bg);
-    const m = F.member(sel);
-    $("#vp-art").innerHTML = '<img class="art" src="' + canvas.toDataURL("image/png")
-      + '" alt="' + esc(m ? m.name : "") + '의 목소리 지문 로고">';
-    $("#vp-stats").hidden = false;
-    $("#vp-stats").innerHTML =
-      '<li><span>음역</span><b>' + esc(p.low) + " – " + esc(p.high) + '</b></li>'
-      + '<li><span>중간 음높이</span><b>' + esc(p.avg) + " · " + p.avgHz + 'Hz</b></li>'
-      + '<li><span>길이</span><b>' + p.seconds + '초</b></li>';
-    $("#vp-save").disabled = false;
-  }
-
-  $("#vp-chips").addEventListener("click", e => {
-    const b = e.target.closest("[data-m]");
-    if (!b || b.disabled) return;
-    sel = b.dataset.m;
-    chips(); paintArt();
-  });
-  function setBg(v) {
-    bg = v;
-    $("#vp-bg-cream").setAttribute("aria-pressed", String(v === "cream"));
-    $("#vp-bg-ink").setAttribute("aria-pressed", String(v === "ink"));
-    paintArt();
-  }
-  $("#vp-bg-cream").addEventListener("click", () => setBg("cream"));
-  $("#vp-bg-ink").addEventListener("click", () => setBg("ink"));
-  $("#vp-save").addEventListener("click", async () => {
-    const m = F.member(sel);
-    const ok = await F.savePNG(canvas, "felicia-" + (m ? m.name : "voiceprint") + ".png");
-    $("#vp-msg").textContent = ok ? "저장했습니다." : "저장하지 못했습니다. 이미지를 길게 눌러 저장해주세요.";
-  });
-
-  /* ---------- 결산 ---------- */
-  const wrapped = F.mountWrapped({
-    stage: $("#wr-stage"), dots: $("#wr-dots"),
-    prev: $("#wr-prev"), next: $("#wr-next")
-  });
-
-  /* ---------- 응원 메시지 ---------- */
-  let cheers = [], filter = "all", cIdx = 0, cOpen = false;
-
-  function filterChips() {
-    const counts = {};
-    cheers.forEach(c => { counts[c.to] = (counts[c.to] || 0) + 1; });
-    const items = [{ id: "all", name: "전체", n: cheers.length }]
-      .concat(TEAM.members.map(m => ({ id: m.id, name: m.name, n: counts[m.id] || 0 })))
-      .concat([{ id: "team", name: "우리 모두에게", n: counts.team || 0 }]);
-    $("#cheer-filter").innerHTML = items.map(i =>
-      '<button data-f="' + i.id + '" aria-pressed="' + (i.id === filter) + '"' + (i.n ? "" : " disabled") + '>'
-      + esc(i.name) + '<span class="part">' + i.n + '</span></button>').join("");
-  }
-
-  const shown = () => filter === "all" ? cheers : cheers.filter(c => c.to === filter);
-
-  function paintCheer() {
-    const list = shown();
-    const stage = $("#cheer-stage");
-    if (!list.length) {
-      stage.innerHTML = '<p class="empty">' + (cheers.length ? "이 사람에게 온 응원이 아직 없습니다." : "아직 도착한 응원이 없습니다.") + "</p>";
-      $("#cheer-dots").innerHTML = "";
-      $("#cheer-prev").disabled = true;
-      $("#cheer-next").disabled = true;
-      return;
-    }
-    cIdx = F.clamp(cIdx, 0, list.length - 1);
-    const c = list[cIdx];
-    const to = c.to === "team" ? "우리 모두에게" : ((F.member(c.to) || {}).name || "") + "에게";
-    stage.innerHTML =
-      '<p class="cheer-to">' + esc(to) + "</p>"
-      + '<button class="cheer-title" id="cheer-title">' + esc(c.title) + "</button>"
-      + (cOpen
-          ? '<p class="cheer-body fadein">' + esc(c.body) + "</p>"
-            + '<p class="cheer-from fadein">— ' + esc(c.from || "익명") + "</p>"
-          : '<p class="cheer-hint">제목을 누르면 내용이 열립니다</p>');
-    $("#cheer-title").addEventListener("click", () => { cOpen = !cOpen; paintCheer(); });
-    $("#cheer-dots").innerHTML = list.map((_, i) => '<i class="' + (i === cIdx ? "on" : "") + '"></i>').join("");
-    $("#cheer-prev").disabled = cIdx === 0;
-    $("#cheer-next").disabled = false;
-    $("#cheer-next").textContent = cIdx === list.length - 1 ? "처음으로" : "다음";
-  }
-
-  $("#cheer-next").addEventListener("click", () => {
-    const n = shown().length; if (!n) return;
-    cIdx = (cIdx + 1) % n; cOpen = false; paintCheer();
-  });
-  $("#cheer-prev").addEventListener("click", () => {
-    const n = shown().length; if (!n) return;
-    cIdx = (cIdx - 1 + n) % n; cOpen = false; paintCheer();
-  });
-  $("#cheer-filter").addEventListener("click", e => {
-    const b = e.target.closest("[data-f]");
-    if (!b || b.disabled) return;
-    filter = b.dataset.f; cIdx = 0; cOpen = false;
-    filterChips(); paintCheer();
-  });
-
-  /* ---------- 불러오기 ---------- */
-  (async () => {
-    try {
-      prints = await F.store.getPrints();
-    } catch (e) { prints = {}; }
-    sel = (TEAM.members.find(m => prints[m.id]) || {}).id || null;
-    chips(); paintArt();
-    wrapped.setPrints(prints);
-
-    try {
-      cheers = await F.store.getCheers();
-      cheers.sort((a, b) => String(a.at).localeCompare(String(b.at)));
-    } catch (e) {
-      cheers = [];
-      $("#cheer-stage").innerHTML = '<p class="empty">응원 메시지를 불러오지 못했습니다.</p>';
-    }
-    filterChips(); paintCheer();
-  })();
-})();
+  FELICIA.logo.ready.then(() => FELICIA.coverMark(FELICIA.$("#mark")));
 </script>
 </body>
 </html>

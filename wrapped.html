@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>우리의 결산 — FELICIA</title>
+<meta name="description" content="884일, 640시간, 그리고 650분. 중창단 FELICIA의 기록.">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300&family=Gowun+Batang:wght@400;700&family=IBM+Plex+Sans+KR:wght@300;400;500&display=swap">
+<link rel="stylesheet" href="assets/app.css">
+</head>
+<body>
+<div class="app">
+
+  <section class="sec" style="border-top:0">
+    <div class="sec-in">
+      <p class="eyebrow center">02</p>
+      <h2>우리의 결산</h2>
+      <div class="card-box" style="margin-top:22px"><div class="wr" id="stage"></div></div>
+      <div class="wr-nav" style="margin-top:18px">
+        <button class="btn ghost" id="prev">이전</button>
+        <div class="wr-dots" id="dots"></div>
+        <button class="btn" id="next">다음</button>
+      </div>
+    </div>
+  </section>
+
+  <nav class="pagenav" aria-label="페이지 이동">
+    <a href="index.html">처음</a>
+    <a href="voice.html">목소리 지문</a>
+    <a href="wrapped.html" aria-current="page">우리의 결산</a>
+    <a href="mycheers.html">나에게 온 응원</a>
+  </nav>
+</div>
+
+<script src="assets/app.js"></script>
+<script>
+(() => {
+  "use strict";
+  const F = window.FELICIA;
+  const wrapped = F.mountWrapped({
+    stage: F.$("#stage"), dots: F.$("#dots"),
+    prev: F.$("#prev"), next: F.$("#next"),
+    keys: true, active: () => true
+  });
+  (async () => {
+    try { wrapped.setPrints(await F.store.getPrints()); } catch (e) { /* 음역 없이 보여준다 */ }
+  })();
+})();
+</script>
+</body>
+</html>

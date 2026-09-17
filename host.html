@@ -44,13 +44,13 @@
         <li><button data-go="cheers">
           <span class="idx">03</span><span class="ttl">응원 메시지 확인</span>
           <span class="state" id="st-cheers">0개</span>
-          <span class="sub">도착한 응원을 미리 읽어보고, 상영 뒤에 단원 페이지를 열어 함께 봅니다.</span>
+          <span class="sub">도착한 응원을 전부 읽어봅니다. 단원들은 각자 확인 코드로 자기 것만 봅니다.</span>
         </button></li>
       </ol>
       <div class="warn" id="local-warn" hidden>
         저장소 주소가 비어 있어 이 기기 안에서만 저장됩니다. <code>assets/app.js</code>의 <code>ENDPOINT</code>를 채워주세요.
       </div>
-      <p class="note">단원들에게는 <a href="index.html">단원 페이지</a>를, 응원해주시는 분들께는 <a href="cheer.html">응원 페이지</a>를 보내세요.</p>
+      <p class="note">단원들에게는 <a href="index.html">단원 페이지</a>와 각자의 확인 코드를, 응원해주시는 분들께는 <a href="cheer.html">응원 남기기 페이지</a>를 보내세요.</p>
     </section>
 
     <!-- 결산 -->
@@ -67,7 +67,7 @@
     <section id="view-voice" class="wrap" hidden>
       <div class="head">
         <p class="eyebrow">01 — 목소리 지문 로고</p>
-        <h1>같은 로고, 일곱 개의 다른 로고.</h1>
+        <h1>목소리 지문 만들기</h1>
         <p class="lede">녹음 파일을 넣으면 진폭과 주파수를 분석해 로고 뒤에 반투명 방사형 지문으로 얹습니다. 폰 음성 녹음기로 15~30초면 충분하고, <b>편한 음 → 낮은 음 → 높은 음</b>을 한 번씩 내게 하면 음역이 제대로 나옵니다.</p>
       </div>
       <div class="vp">
@@ -114,7 +114,7 @@
       <div class="head">
         <p class="eyebrow">03 — 응원 메시지</p>
         <h1>도착한 응원</h1>
-        <p class="lede">여기서는 전부 펼쳐서 보입니다. 단원들에게 보여줄 때는 <a href="index.html">단원 페이지</a>를 열어 제목부터 넘기세요.</p>
+        <p class="lede">운영자 화면에서만 전부 펼쳐서 보입니다. 단원들은 <a href="mycheers.html">나에게 온 응원</a>에서 각자의 확인 코드를 넣어 자기에게 온 것과 모두에게 온 것만 봅니다.</p>
         <div class="row">
           <button class="btn" id="cheer-reload">새로 불러오기</button>
           <span class="tiny" id="cheer-count"></span>
@@ -166,7 +166,7 @@
 
   function memberOptions() {
     $("#vp-member").innerHTML = TEAM.members.map(m =>
-      '<option value="' + m.id + '">' + esc(m.name) + " · " + esc(m.part) + (m.absent ? " (불참)" : "") + "</option>").join("");
+      '<option value="' + m.id + '">' + esc(m.name) + " · " + esc(m.part) + "</option>").join("");
   }
   function renderDone() {
     const n = TEAM.members.filter(m => prints[m.id]).length;

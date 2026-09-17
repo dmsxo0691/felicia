@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>목소리 지문 — FELICIA</title>
+<meta name="description" content="각 단원의 목소리를 분석해 만든 FELICIA 로고.">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300&family=Gowun+Batang:wght@400;700&family=IBM+Plex+Sans+KR:wght@300;400;500&display=swap">
+<link rel="stylesheet" href="assets/app.css">
+</head>
+<body>
+<div class="app">
+
+  <section class="sec" style="border-top:0">
+    <div class="sec-in">
+      <p class="eyebrow center">01</p>
+      <h2>목소리 지문</h2>
+      <div class="chips" id="chips" role="group" aria-label="단원 선택" style="margin-top:22px"></div>
+      <div class="art-box" id="art"></div>
+      <ul class="stats" id="stats" hidden></ul>
+      <div class="row" style="margin-top:18px;justify-content:center">
+        <button class="btn" id="save" disabled>PNG로 저장</button>
+        <div class="seg" role="group" aria-label="배경">
+          <button id="bg-cream" aria-pressed="true">아이보리</button>
+          <button id="bg-ink" aria-pressed="false">먹색</button>
+        </div>
+      </div>
+      <p class="note center" id="msg">휴대폰에서는 이미지를 길게 눌러 저장할 수도 있습니다.</p>
+    </div>
+  </section>
+
+  <nav class="pagenav" aria-label="페이지 이동">
+    <a href="index.html">처음</a>
+    <a href="voice.html" aria-current="page">목소리 지문</a>
+    <a href="wrapped.html">우리의 결산</a>
+    <a href="mycheers.html">나에게 온 응원</a>
+  </nav>
+</div>
+
+<script src="assets/app.js"></script>
+<script>
+(() => {
+  "use strict";
+  const F = window.FELICIA;
+  const { $, esc, TEAM } = F;
+
+  const canvas = document.createElement("canvas");
+  canvas.width = canvas.height = 2048;
+  let prints = {}, sel = null, bg = "cream";
+
+  function chips() {
+    $("#chips").innerHTML = TEAM.members.map(m => {
+      const has = !!prints[m.id];
+      return '<button data-m="' + m.id + '" aria-pressed="' + (m.id === sel) + '"' + (has ? "" : " disabled") + '>'
+        + esc(m.name) + '<span class="part">' + esc(m.part) + '</span></button>';
+    }).join("");
+  }
+
+  function paint() {
+    if (!sel || !prints[sel]) {
+      $("#art").innerHTML = '<p class="empty">아직 목소리 지문이 준비되지 않았습니다.</p>';
+      $("#stats").hidden = true;
+      $("#save").disabled = true;
+      return;
+    }
+    const p = prints[sel];
+    F.drawArt(canvas, { memberId: sel, a: F.inflate(p) }, bg);
+    const m = F.member(sel);
+    $("#art").innerHTML = '<img class="art" src="' + canvas.toDataURL("image/png")
+      + '" alt="' + esc(m ? m.name : "") + '의 목소리 지문 로고">';
+    $("#stats").hidden = false;
+    $("#stats").innerHTML =
+      '<li><span>음역</span><b>' + esc(p.low) + " – " + esc(p.high) + '</b></li>'
+      + '<li><span>중간 음높이</span><b>' + esc(p.avg) + " · " + p.avgHz + 'Hz</b></li>'
+      + '<li><span>길이</span><b>' + p.seconds + '초</b></li>';
+    $("#save").disabled = false;
+  }
+
+  $("#chips").addEventListener("click", e => {
+    const b = e.target.closest("[data-m]");
+    if (!b || b.disabled) return;
+    sel = b.dataset.m;
+    chips(); paint();
+  });
+  function setBg(v) {
+    bg = v;
+    $("#bg-cream").setAttribute("aria-pressed", String(v === "cream"));
+    $("#bg-ink").setAttribute("aria-pressed", String(v === "ink"));
+    paint();
+  }
+  $("#bg-cream").addEventListener("click", () => setBg("cream"));
+  $("#bg-ink").addEventListener("click", () => setBg("ink"));
+  $("#save").addEventListener("click", async () => {
+    const m = F.member(sel);
+    const ok = await F.savePNG(canvas, "felicia-" + (m ? m.name : "voiceprint") + ".png");
+    $("#msg").textContent = ok ? "저장했습니다." : "저장하지 못했습니다. 이미지를 길게 눌러 저장해주세요.";
+  });
+
+  (async () => {
+    await F.logo.ready;
+    try { prints = await F.store.getPrints(); } catch (e) { prints = {}; }
+    // 코드를 넣은 적이 있으면 본인부터 보여준다.
+    const me = F.recallMe();
+    sel = (me && prints[me]) ? me : ((TEAM.members.find(m => prints[m.id]) || {}).id || null);
+    chips(); paint();
+  })();
+})();
+</script>
+</body>
+</html>

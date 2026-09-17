@@ -14,14 +14,13 @@
   <div class="cover">
     <div class="mark" id="mark"></div>
     <p class="sub">응원 메시지</p>
-    <p class="date" id="cover-date"></p>
   </div>
 
   <section class="sec" id="form-sec">
     <div class="sec-in">
       <p class="lede center" style="margin-bottom:28px">
         한 사람을 고르거나, 우리 모두에게 남겨주세요.<br>
-        남긴 메시지는 단원들이 함께 보는 페이지에 제목으로 먼저 올라갑니다.
+        남긴 메시지는 그 단원에게만 전해집니다.
       </p>
 
       <div class="field">
@@ -63,8 +62,7 @@
       <h2 id="done-title">보냈습니다.</h2>
       <p class="lede" style="margin:0 auto 26px" id="done-sub"></p>
       <div class="row" style="justify-content:center">
-        <button class="btn" id="again">하나 더 남기기</button>
-        <a class="btn ghost" href="index.html">단원 페이지 보기</a>
+        <button class="btn solid" id="again">하나 더 남기기</button>
       </div>
     </div>
   </section>
@@ -81,7 +79,6 @@
   const F = window.FELICIA;
   const { $, esc, TEAM } = F;
 
-  $("#cover-date").textContent = TEAM.trip.replace(/-/g, ".");
   F.logo.ready.then(() => F.coverMark($("#mark")));
   if (!F.store.remote) $("#local-warn").hidden = false;
 
@@ -116,7 +113,7 @@
     try {
       await F.store.addCheer({ to, from: from || "익명", title, body });
       const name = to === "team" ? "단원 모두" : (F.member(to) || {}).name;
-      $("#done-sub").textContent = name + "에게 전해졌습니다. 단원 페이지에서 제목으로 먼저 보이고, 누르면 내용이 열립니다.";
+      $("#done-sub").textContent = name + "에게 전해졌습니다. 제목이 먼저 보이고, 누르면 내용이 열립니다.";
       $("#form-sec").hidden = true;
       $("#done-sec").hidden = false;
       window.scrollTo({ top: 0, behavior: "smooth" });
