@@ -121,10 +121,12 @@
       g.quadraticCurveTo(0.08, 0.08, 0, 0.46); g.quadraticCurveTo(-0.08, 0.08, -0.46, 0);
       g.quadraticCurveTo(-0.08, -0.08, 0, -0.46); g.fill();
     } },
+    /* 바깥은 크게, 안쪽은 얕게 휘어 초승달을 만든다. */
     moon: { label: "달", draw(g) {
       g.beginPath();
-      g.arc(0.04, 0, 0.42, Math.PI * 0.42, Math.PI * 1.58, false);
-      g.quadraticCurveTo(0.2, 0, 0.21, -0.38);
+      g.moveTo(0.12, -0.45);
+      g.bezierCurveTo(-0.36, -0.34, -0.36, 0.34, 0.12, 0.45);
+      g.bezierCurveTo(-0.11, 0.26, -0.11, -0.26, 0.12, -0.45);
       g.fill();
     } },
     leaf: { label: "잎", draw(g) {
@@ -141,16 +143,45 @@
         g.stroke();
       }
     } },
+    /* 물방울과 갈리는 건 왼쪽으로 한 번 꺾이는 허리와 안쪽 혀다. */
     flame: { label: "불꽃", draw(g) {
       g.beginPath();
-      g.moveTo(0, -0.46);
-      g.bezierCurveTo(0.34, -0.1, 0.3, 0.34, 0, 0.44);
-      g.bezierCurveTo(-0.3, 0.34, -0.34, -0.1, 0, -0.46);
+      g.moveTo(0.03, -0.48);
+      g.bezierCurveTo(0.07, -0.26, 0.27, -0.20, 0.27, 0.05);
+      g.bezierCurveTo(0.27, 0.29, 0.11, 0.45, -0.03, 0.45);
+      g.bezierCurveTo(-0.22, 0.45, -0.33, 0.28, -0.29, 0.08);
+      g.bezierCurveTo(-0.25, -0.09, -0.09, -0.07, -0.12, -0.23);
+      g.bezierCurveTo(-0.14, -0.35, -0.05, -0.42, 0.03, -0.48);
       g.stroke();
+      g.beginPath();
+      g.moveTo(0.00, 0.01);
+      g.bezierCurveTo(0.15, 0.13, 0.13, 0.29, 0.00, 0.35);
+      g.bezierCurveTo(-0.13, 0.29, -0.15, 0.13, 0.00, 0.01);
+      g.fill();
     } },
-    ring: { label: "고리", draw(g) {
-      g.beginPath(); g.arc(0, 0.04, 0.36, 0, Math.PI * 2); g.stroke();
-      g.beginPath(); g.arc(0, -0.38, 0.09, 0, Math.PI * 2); g.fill();
+    ring: { label: "반지", draw(g) {
+      g.beginPath(); g.arc(0, 0.14, 0.29, 0, Math.PI * 2); g.stroke();
+      g.beginPath();
+      g.moveTo(0, -0.44); g.lineTo(0.15, -0.28); g.lineTo(0, -0.12); g.lineTo(-0.15, -0.28);
+      g.closePath(); g.fill();
+    } },
+    /* 동그란 수관에 줄기를 붙이면 막대사탕으로 읽힌다. 삼각 두 단으로 세운다. */
+    tree: { label: "나무", draw(g) {
+      g.beginPath();
+      g.moveTo(0, -0.48); g.lineTo(0.25, -0.12); g.lineTo(-0.25, -0.12); g.closePath(); g.stroke();
+      g.beginPath();
+      g.moveTo(0, -0.28); g.lineTo(0.36, 0.20); g.lineTo(-0.36, 0.20); g.closePath(); g.stroke();
+      g.beginPath(); g.moveTo(0, 0.20); g.lineTo(0, 0.48); g.stroke();
+    } },
+    sun: { label: "해", draw(g) {
+      g.beginPath(); g.arc(0, 0, 0.19, 0, Math.PI * 2); g.fill();
+      for (let k = 0; k < 8; k++) {
+        const a = k * Math.PI / 4;
+        g.beginPath();
+        g.moveTo(Math.cos(a) * 0.29, Math.sin(a) * 0.29);
+        g.lineTo(Math.cos(a) * 0.45, Math.sin(a) * 0.45);
+        g.stroke();
+      }
     } },
     cross: { label: "십자", draw(g) {
       g.beginPath(); g.moveTo(0, -0.46); g.lineTo(0, 0.46); g.stroke();
@@ -738,9 +769,7 @@
     g.fillStyle = onCream ? "#7A7159" : "#8C8674";
     g.font = '300 ' + (S * 0.0145) + 'px "IBM Plex Sans KR", sans-serif';
     g.letterSpacing = (S * 0.003).toFixed(1) + "px";
-    const line = [];
-    if (born) line.push("출생 " + born);
-    if (joined) line.push("입교 " + joined);
+    const line = [born, joined].filter(Boolean);
     if (line.length) g.fillText(line.join("   ·   "), S / 2, S * 0.920);
     g.letterSpacing = "0px";
     if (sign) {

@@ -46,6 +46,44 @@ function sheetNamed_(name, headers) {
   return sh;
 }
 
+/**
+ * 목소리 지문 시트. 단원 한 명이 한 줄을 씁니다.
+ * 한 칸에 전부 모아두면 저장이 겹칠 때 먼저 만든 사람 것이 지워지므로,
+ * 줄을 나눠 서로 다른 칸에만 쓰게 합니다.
+ *
+ * 예전 판은 A1 한 칸에 전체를 JSON 으로 넣었습니다. 그 형태가 남아 있으면
+ * 처음 열 때 줄 단위로 옮겨 담습니다.
+ */
+function printsSheet_() {
+  var sh = sheetNamed_("prints");
+  var a1 = String(sh.getRange(1, 1).getValue() || "");
+  if (a1 === "id") return sh;              // 이미 새 형태
+
+  var old = null;
+  if (a1.charAt(0) === "{") {
+    try { old = JSON.parse(a1); } catch (e) { old = null; }
+  }
+  sh.clear();
+  sh.appendRow(["id", "data"]);
+  if (old) {
+    for (var id in old) {
+      if (Object.prototype.hasOwnProperty.call(old, id)) {
+        sh.appendRow([id, JSON.stringify(old[id])]);
+      }
+    }
+  }
+  return sh;
+}
+
+/** 그 단원의 줄 번호. 없으면 0. */
+function printsRow_(sh, id) {
+  var ids = sh.getRange(1, 1, Math.max(sh.getLastRow(), 1), 1).getValues();
+  for (var i = 1; i < ids.length; i++) {
+    if (String(ids[i][0]) === id) return i + 1;
+  }
+  return 0;
+}
+
 function json_(obj) {
   return ContentService
     .createTextOutput(JSON.stringify(obj))
@@ -80,11 +118,13 @@ function doGet(e) {
     }
 
     if (kind === "prints") {
-      var ps = sheetNamed_("prints");
-      var raw = ps.getRange(1, 1).getValue();
+      var ps = printsSheet_();
+      var rows = ps.getDataRange().getValues();
       var data = {};
-      if (raw) {
-        try { data = JSON.parse(raw); } catch (err) { data = {}; }
+      for (var i = 1; i < rows.length; i++) {
+        var id = String(rows[i][0] || "");
+        if (!id) continue;
+        try { data[id] = JSON.parse(rows[i][1]); } catch (err) { /* 깨진 줄은 건너뜁니다 */ }
       }
       return json_({ ok: true, data: data });
     }
@@ -117,37 +157,55 @@ function doPost(e) {
       return json_({ ok: true });
     }
 
-    if (body.kind === "prints" && body.action === "put") {
-      var ps = sheetNamed_("prints");
-      var payload = JSON.stringify(body.data || {});
-      // 한 칸에 5만 자까지 들어갑니다. 단원 한 명당 약 1,200자입니다.
-      if (payload.length > 45000) return json_({ ok: false, error: "분석 결과가 너무 큽니다." });
-      ps.getRange(1, 1).setValue(payload);
-      return json_({ ok: true });
-    }
-
-    // 단원 한 명만 고쳐 넣습니다. 각자 자기 기기에서 만들기 때문에
-    // 지도 전체를 덮어쓰면 동시에 만든 사람의 것이 지워집니다.
+    // 단원 한 명의 줄만 씁니다. 각자 다른 칸을 쓰므로 서로 덮어쓸 일이 없습니다.
+    // 줄이 아직 없을 때만 잠깐 잠급니다 — 두 명이 동시에 처음 만들면 같은 줄을
+    // 새로 만들려 할 수 있기 때문입니다.
     if (body.kind === "prints" && body.action === "merge") {
       var id = String(body.id || "");
       if (!id) return json_({ ok: false, error: "id 가 필요합니다." });
+
+      var payload = JSON.stringify(body.data || {});
+      // 한 칸에 5만 자까지 들어갑니다. 한 명이 약 1,200자입니다.
+      if (payload.length > 45000) return json_({ ok: false, error: "분석 결과가 너무 큽니다." });
+
+      var sh = printsSheet_();
+      var row = printsRow_(sh, id);
+      if (row) {                       // 있는 줄이면 그 칸만 바꿉니다
+        sh.getRange(row, 2).setValue(payload);
+        return json_({ ok: true, row: row });
+      }
 
       var lock = LockService.getScriptLock();
       try { lock.waitLock(15000); } catch (e) {
         return json_({ ok: false, error: "저장소가 사용 중입니다. 잠시 후 다시 시도해주세요." });
       }
       try {
-        var sh = sheetNamed_("prints");
-        var cur = sh.getRange(1, 1).getValue();
-        var map = {};
-        if (cur) { try { map = JSON.parse(cur); } catch (e2) { map = {}; } }
-        map[id] = body.data || {};
-        var out = JSON.stringify(map);
-        if (out.length > 45000) return json_({ ok: false, error: "분석 결과가 너무 큽니다." });
-        sh.getRange(1, 1).setValue(out);
+        row = printsRow_(sh, id);      // 기다리는 사이 누가 만들었을 수 있습니다
+        if (row) sh.getRange(row, 2).setValue(payload);
+        else sh.appendRow([id, payload]);
         return json_({ ok: true });
       } finally {
         lock.releaseLock();
+      }
+    }
+
+    // 예전 판과의 호환 — 지도 전체를 한 번에 넣습니다. 지금은 쓰지 않습니다.
+    if (body.kind === "prints" && body.action === "put") {
+      var lock2 = LockService.getScriptLock();
+      try { lock2.waitLock(15000); } catch (e) {
+        return json_({ ok: false, error: "저장소가 사용 중입니다." });
+      }
+      try {
+        var sh2 = printsSheet_();
+        sh2.clear();
+        sh2.appendRow(["id", "data"]);
+        var map = body.data || {};
+        for (var k in map) {
+          if (Object.prototype.hasOwnProperty.call(map, k)) sh2.appendRow([k, JSON.stringify(map[k])]);
+        }
+        return json_({ ok: true });
+      } finally {
+        lock2.releaseLock();
       }
     }
 
