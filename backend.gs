@@ -53,6 +53,21 @@ function audioFile_(id) {
   return null;
 }
 
+/**
+ * 편집기에서 한 번 실행하세요 (▶ 실행).
+ *
+ * Apps Script 는 코드를 바꿔도 권한을 다시 묻지 않습니다. 드라이브를 쓰는
+ * 코드를 새로 넣었으면 함수를 한 번 실행해 승인 창을 띄워야 합니다.
+ * 이 함수는 폴더와 시트를 만들어보고 주소를 기록만 합니다.
+ */
+function setup() {
+  var f = folder_();
+  var ss = book_();
+  var msg = "판 " + VERSION + "\n녹음 폴더: " + f.getUrl() + "\n시트: " + ss.getUrl();
+  Logger.log(msg);
+  return msg;
+}
+
 function book_() {
   var props = PropertiesService.getScriptProperties();
   var id = props.getProperty(PROP_SHEET_ID);
