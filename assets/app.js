@@ -267,13 +267,34 @@
   const lsRead = k => { try { return JSON.parse(localStorage.getItem(k) || "null"); } catch (e) { return null; } };
   const lsWrite = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); return true; } catch (e) { return false; } };
 
+  /* Apps Script 는 가끔 JSON 대신 404 나 HTML 오류 페이지를 돌려준다. 실제로
+     쓰기가 끝난 뒤에도 그런 응답이 와서 "실패" 로 보이는 일이 있었다.
+     그래서 모든 호출을 이 함수로 감싸 몇 번 다시 시도한다.
+     다시 보내도 결과가 같은 요청(읽기, prints/merge, audio/put)에만 쓴다. */
+  async function callJSON(url, opts, tries) {
+    const n = tries || 3;
+    let last = null;
+    for (let i = 0; i < n; i++) {
+      try {
+        const r = await fetch(url, opts);
+        const text = await r.text();
+        if (!r.ok) throw new Error("저장소 응답 " + r.status);
+        try { return JSON.parse(text); }
+        catch (e) { throw new Error("저장소가 JSON 이 아닌 응답을 보냈습니다"); }
+      } catch (e) {
+        last = e;
+        if (i < n - 1) await new Promise(res => setTimeout(res, 900 + i * 1200));
+      }
+    }
+    throw last;
+  }
+
   const store = {
     remote: !!ENDPOINT,
 
     async getCheers() {
       if (!ENDPOINT) return lsRead(LS_CHEERS) || [];
-      const r = await fetch(ENDPOINT + "?kind=cheers&t=" + Date.now());
-      const j = await r.json();
+      const j = await callJSON(ENDPOINT + "?kind=cheers&t=" + Date.now());
       if (!j.ok) throw new Error(j.error || "read failed");
       return j.items || [];
     },
@@ -286,21 +307,33 @@
         if (!lsWrite(LS_CHEERS, all)) throw new Error("이 브라우저에 저장할 수 없습니다.");
         return rec;
       }
-      // text/plain 으로 보내 사전 요청(preflight)을 피한다 — Apps Script 웹앱의 제약.
-      const r = await fetch(ENDPOINT, {
+      /* text/plain 으로 보내 사전 요청(preflight)을 피한다 — Apps Script 의 제약.
+         응원은 줄을 새로 붙이므로 무턱대고 다시 보내면 두 번 올라간다. 그래서
+         한 번만 보내고, 응답을 못 읽었을 때는 목록에서 그 id 를 찾아 확인한다. */
+      const send = () => fetch(ENDPOINT, {
         method: "POST",
         headers: { "Content-Type": "text/plain;charset=utf-8" },
         body: JSON.stringify({ kind: "cheers", action: "add", item: rec })
-      });
-      const j = await r.json();
-      if (!j.ok) throw new Error(j.error || "write failed");
-      return rec;
+      }).then(r => r.text()).then(t => JSON.parse(t));
+
+      try {
+        const j = await send();
+        if (!j.ok) throw new Error(j.error || "write failed");
+        return rec;
+      } catch (e) {
+        await new Promise(res => setTimeout(res, 1800));
+        let landed = false;
+        try { landed = (await store.getCheers()).some(c => c.id === rec.id); } catch (e2) {}
+        if (landed) return rec;             // 실은 들어갔다
+        const j2 = await send();            // 확실히 안 들어갔으니 한 번 더
+        if (!j2.ok) throw new Error(j2.error || "write failed");
+        return rec;
+      }
     },
 
     async getPrints() {
       if (!ENDPOINT) return lsRead(LS_PRINTS) || {};
-      const r = await fetch(ENDPOINT + "?kind=prints&t=" + Date.now());
-      const j = await r.json();
+      const j = await callJSON(ENDPOINT + "?kind=prints&t=" + Date.now());
       if (!j.ok) throw new Error(j.error || "read failed");
       return j.data || {};
     },
@@ -314,12 +347,11 @@
         if (!lsWrite(LS_PRINTS, all)) throw new Error("이 브라우저에 저장할 수 없습니다.");
         return;
       }
-      const r = await fetch(ENDPOINT, {
+      const j = await callJSON(ENDPOINT, {
         method: "POST",
         headers: { "Content-Type": "text/plain;charset=utf-8" },
         body: JSON.stringify({ kind: "prints", action: "merge", id: id, data: rec })
       });
-      const j = await r.json();
       if (j.ok) return;
       // 저장소가 아직 merge 를 모르는 예전 판이면 읽어서 합쳐 다시 쓴다.
       const all = await store.getPrints();
@@ -340,15 +372,14 @@
       });
       const ext = ((file.name || "").match(/\.([A-Za-z0-9]{1,8})$/) || [, ""])[1]
         || (String(file.type || "").split("/")[1] || "m4a").replace(/[^a-z0-9]/gi, "");
-      const r = await fetch(ENDPOINT, {
+      const j = await callJSON(ENDPOINT, {
         method: "POST",
         headers: { "Content-Type": "text/plain;charset=utf-8" },
         body: JSON.stringify({
           kind: "audio", action: "put", id: id,
           ext: ext.toLowerCase(), mime: file.type || "audio/mp4", b64: b64
         })
-      });
-      const j = await r.json();
+      }, 2);
       if (!j.ok) throw new Error(j.error || "녹음을 저장하지 못했습니다.");
       return j;
     },
@@ -356,8 +387,7 @@
     /** 올라온 녹음 목록. [{id, name, mime, bytes, at}] */
     async listAudio() {
       if (!ENDPOINT) return [];
-      const r = await fetch(ENDPOINT + "?kind=audios&t=" + Date.now());
-      const j = await r.json();
+      const j = await callJSON(ENDPOINT + "?kind=audios&t=" + Date.now());
       if (!j.ok) throw new Error(j.error || "목록을 불러오지 못했습니다.");
       return j.items || [];
     },
@@ -365,8 +395,7 @@
     /** 녹음 하나를 받아 Blob 으로 돌려줍니다. */
     async getAudio(id) {
       if (!ENDPOINT) throw new Error("저장소가 연결되지 않았습니다.");
-      const r = await fetch(ENDPOINT + "?kind=audio&id=" + encodeURIComponent(id) + "&t=" + Date.now());
-      const j = await r.json();
+      const j = await callJSON(ENDPOINT + "?kind=audio&id=" + encodeURIComponent(id) + "&t=" + Date.now());
       if (!j.ok) throw new Error(j.error || "녹음을 불러오지 못했습니다.");
       const bin = atob(j.b64);
       const u8 = new Uint8Array(bin.length);
@@ -379,12 +408,11 @@
         if (!lsWrite(LS_PRINTS, map)) throw new Error("이 브라우저에 저장할 수 없습니다.");
         return;
       }
-      const r = await fetch(ENDPOINT, {
+      const j = await callJSON(ENDPOINT, {
         method: "POST",
         headers: { "Content-Type": "text/plain;charset=utf-8" },
         body: JSON.stringify({ kind: "prints", action: "put", data: map })
       });
-      const j = await r.json();
       if (!j.ok) throw new Error(j.error || "write failed");
     }
   };
