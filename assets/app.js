@@ -378,7 +378,7 @@
 
     TEAM.members.forEach((m, i) => {
       out.push({
-        kick: "단원 " + String(i + 1).padStart(2, "0") + " · " + m.part + (m.role ? " · " + m.role : ""),
+        kick: "단원 " + String(i + 1).padStart(2, "0") + " · " + m.part,
         member: m.name,
         memberId: m.id
       });
