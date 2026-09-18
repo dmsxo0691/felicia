@@ -766,31 +766,56 @@
     const info = (vp && vp.info) || {};
     g.save();
     g.textAlign = "center"; g.textBaseline = "alphabetic";
+    /* 로고 워드마크가 끝나는 자리와 아래 여백 사이에 캡션 덩어리를 앉힌다.
+       전에는 이름이 0.804 에 있어 워드마크와 300px 가까이 떨어져 부속처럼 보였다. */
     if (m) {
       g.fillStyle = txt;
-      g.font = '400 ' + (S * 0.044) + 'px "Gowun Batang", serif';
-      g.fillText(m.name, S / 2, S * 0.804);
+      g.font = '400 ' + (S * 0.056) + 'px "Gowun Batang", serif';
+      g.fillText(m.name, S / 2, S * 0.757);
       g.fillStyle = fg;
-      g.font = '400 ' + (S * 0.0155) + 'px "IBM Plex Sans KR", sans-serif';
-      g.letterSpacing = (S * 0.006).toFixed(1) + "px";
-      g.fillText(m.part.toUpperCase() + (m.role ? "  ·  " + m.role : ""), S / 2, S * 0.842);
+      g.font = '400 ' + (S * 0.019) + 'px "IBM Plex Sans KR", sans-serif';
+      g.letterSpacing = (S * 0.0072).toFixed(1) + "px";
+      g.fillText(m.part.toUpperCase(), S / 2, S * 0.805);   // 역할은 넣지 않는다
       g.letterSpacing = "0px";
     }
 
-    if (info.icon) drawIcon(g, info.icon, S / 2, S * 0.882, S * 0.036, fg);
+    if (info.icon) drawIcon(g, info.icon, S / 2, S * 0.850, S * 0.046, fg);
 
     const born = dotDate(info.born), joined = shortDate(info.joined);
     const sign = zodiac(info.born);
     g.fillStyle = onCream ? "#7A7159" : "#8C8674";
-    g.font = '300 ' + (S * 0.0145) + 'px "IBM Plex Sans KR", sans-serif';
-    g.letterSpacing = (S * 0.003).toFixed(1) + "px";
-    const line = [born, joined].filter(Boolean);
-    if (line.length) g.fillText(line.join("   ·   "), S / 2, S * 0.920);
-    g.letterSpacing = "0px";
+    g.font = '300 ' + (S * 0.019) + 'px "IBM Plex Sans KR", sans-serif';
+    const dateY = S * 0.898;
+    const ls = S * 0.0035;
+    /* 자간을 켜면 캔버스가 마지막 글자 뒤에도 간격을 붙여, 가운데·오른쪽 정렬이
+       그만큼 밀린다. 그래서 자간 없이 폭을 재고 (글자수-1)*자간을 더해
+       실제 보이는 폭을 구한 뒤, 왼쪽 정렬로 직접 앉힌다. */
+    const inkWidth = t => {
+      g.letterSpacing = "0px";
+      return g.measureText(t).width + Math.max(0, t.length - 1) * ls;
+    };
+    if (born && joined) {
+      const pad = S * 0.024;
+      const wb = inkWidth(born);
+      g.letterSpacing = ls.toFixed(2) + "px";
+      g.textAlign = "left";
+      g.fillText(born, S / 2 - pad - wb, dateY);
+      g.fillText(joined, S / 2 + pad, dateY);
+      g.letterSpacing = "0px";
+      g.textAlign = "center";
+      g.fillText("·", S / 2, dateY);          // 자간 없이 찍어 정확히 가운데
+    } else if (born || joined) {
+      const one = born || joined, w = inkWidth(one);
+      g.letterSpacing = ls.toFixed(2) + "px";
+      g.textAlign = "left";
+      g.fillText(one, S / 2 - w / 2, dateY);
+      g.letterSpacing = "0px";
+      g.textAlign = "center";
+    }
     if (sign) {
       g.fillStyle = fg;
-      g.font = '400 ' + (S * 0.019) + 'px "Gowun Batang", serif';
-      g.fillText(sign, S / 2, S * 0.950);
+      g.font = '400 ' + (S * 0.024) + 'px "Gowun Batang", serif';
+      g.fillText(sign, S / 2, S * 0.938);
     }
     g.restore();
   }
