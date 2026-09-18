@@ -7,7 +7,7 @@
 <meta name="description" content="내 목소리를 분석해 만드는 FELICIA 로고.">
 <meta name="robots" content="noindex">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300&family=Gowun+Batang:wght@400;700&family=IBM+Plex+Sans+KR:wght@300;400;500&display=swap">
-<link rel="stylesheet" href="assets/app.css?v=12">
+<link rel="stylesheet" href="assets/app.css?v=13">
 </head>
 <body>
 <div class="app">
@@ -69,15 +69,19 @@
         <h3>내 정보</h3>
         <div class="grid2">
           <div class="field">
-            <label for="born">생년월일</label>
-            <input type="date" id="born">
+            <label>생년월일</label>
+            <div class="ymd">
+              <div class="sel" id="b-y" data-placeholder="년"></div>
+              <div class="sel" id="b-m" data-placeholder="월"></div>
+              <div class="sel" id="b-d" data-placeholder="일"></div>
+            </div>
           </div>
           <div class="field">
-            <label for="j-y">입교 날짜</label>
+            <label>입교 날짜</label>
             <div class="ymd">
-              <select id="j-y" aria-label="입교 연"></select>
-              <select id="j-m" aria-label="입교 월"></select>
-              <select id="j-d" aria-label="입교 일"></select>
+              <div class="sel" id="j-y" data-placeholder="년"></div>
+              <div class="sel" id="j-m" data-placeholder="월"></div>
+              <div class="sel" id="j-d" data-placeholder="일"></div>
             </div>
           </div>
         </div>
@@ -105,7 +109,7 @@
   <nav class="pagenav" id="pagenav" aria-label="페이지 이동"></nav>
 </div>
 
-<script src="assets/app.js?v=12"></script>
+<script src="assets/app.js?v=13"></script>
 <script>
 (() => {
   "use strict";
@@ -113,7 +117,7 @@
 
   /* 브라우저가 예전 app.js 를 캐시하고 있으면 필요한 함수가 없어 화면이
      비어 보인다. 그 경우 빈 폼 대신 무엇을 하면 되는지 알려준다. */
-  const needed = ["splitJoined", "shortDate", "drawIcon", "inflate", "pack", "analyze"];
+  const needed = ["mountDate", "mountSelect", "shortDate", "drawIcon", "inflate", "pack", "analyze"];
   const missing = !F ? ["전체"] : needed.filter(k => typeof F[k] !== "function")
     .concat(!F.ICON_KEYS || !F.ICON_KEYS.length ? ["ICON_KEYS"] : []);
   if (missing.length) {
@@ -199,8 +203,7 @@
       }
     };
     step("analysis", () => { analysis = F.inflate(rec); });
-    step("born", () => { $("#born").value = rec.born || ""; });
-    step("joined", joinedFields);
+    step("dates", dateFields);
     step("icons", icons);
     step("art", paint);
     step("chips", chips);
@@ -276,30 +279,18 @@
     } catch (e) { $("#recmsg").textContent = "마이크 권한이 없습니다. 파일로 넣어주세요."; }
   });
 
-  /* ---------- 내 정보 ---------- */
-  $("#born").addEventListener("change", e => { rec.born = e.target.value || ""; paint(); queueSave(); });
-
-  /* 입교 연도는 00~99 중에서 고릅니다. */
-  function joinedFields() {
-    const cur = F.splitJoined(rec.joined);
-    const opts = (n, from, to, unit, pad) => {
-      let h = '<option value="">' + unit + '</option>';
-      for (let i = from; i <= to; i++) {
-        const v = String(i).padStart(2, "0");
-        h += '<option value="' + v + '">' + (pad ? v : i) + unit + "</option>";
-      }
-      return h;
-    };
-    $("#j-y").innerHTML = opts("y", 0, 99, "년", true);
-    $("#j-m").innerHTML = opts("m", 1, 12, "월", false);
-    $("#j-d").innerHTML = opts("d", 1, 31, "일", false);
-    $("#j-y").value = cur.y; $("#j-m").value = cur.m; $("#j-d").value = cur.d;
+  /* ---------- 내 정보 ----------
+     생년월일은 네 자리 연도, 입교 날짜는 두 자리(00~99) 연도를 씁니다. */
+  function dateFields() {
+    F.mountDate({ y: $("#b-y"), m: $("#b-m"), d: $("#b-d") }, {
+      digits: 4, yearFrom: 2012, yearTo: 1955, value: rec.born,
+      onChange: v => { rec.born = v; paint(); queueSave(); }
+    });
+    F.mountDate({ y: $("#j-y"), m: $("#j-m"), d: $("#j-d") }, {
+      digits: 2, yearFrom: 0, yearTo: 99, value: rec.joined,
+      onChange: v => { rec.joined = v; paint(); queueSave(); }
+    });
   }
-  ["#j-y", "#j-m", "#j-d"].forEach(sel => $(sel).addEventListener("change", () => {
-    const y = $("#j-y").value, m = $("#j-m").value, d = $("#j-d").value;
-    rec.joined = (y && m && d) ? (y + "-" + m + "-" + d) : "";
-    paint(); queueSave();
-  }));
 
   /* ---------- 아이콘 ---------- */
   function icons() {

@@ -174,12 +174,6 @@
       g.bezierCurveTo(-0.13, 0.29, -0.15, 0.13, 0.00, 0.01);
       g.fill();
     } },
-    ring: { label: "반지", draw(g) {
-      g.beginPath(); g.arc(0, 0.14, 0.29, 0, Math.PI * 2); g.stroke();
-      g.beginPath();
-      g.moveTo(0, -0.44); g.lineTo(0.15, -0.28); g.lineTo(0, -0.12); g.lineTo(-0.15, -0.28);
-      g.closePath(); g.fill();
-    } },
     /* 동그란 수관에 줄기를 붙이면 막대사탕으로 읽힌다. 삼각 두 단으로 세운다. */
     tree: { label: "나무", draw(g) {
       g.beginPath();
@@ -465,6 +459,101 @@
       step,
       setPrints(p) { prints = p; paint(); },
       reset() { idx = 0; arr = slides(); paint(); }
+    };
+  }
+
+  /* ======================================================================
+     6-1. 직접 만든 선택기
+     네이티브 <select> 목록과 <input type=date> 달력은 OS 가 그리는 화면이라
+     색을 바꿀 수 없고(안드로이드는 청록 머리말, 흰 배경), 고른 뒤 "완료" 를
+     또 눌러야 한다. 그래서 페이지 안에 직접 만든다 — 테마가 그대로 유지되고
+     한 번 누르면 바로 정해지며, 기기나 OS 에 따라 달라지지도 않는다.
+     ====================================================================== */
+  function closeAllPickers(except) {
+    $$(".sel-list").forEach(l => { if (l !== except) l.hidden = true; });
+  }
+  document.addEventListener("click", e => {
+    if (!e.target.closest(".sel")) closeAllPickers(null);
+  });
+
+  /**
+   * 한 칸을 만든다.
+   *   host     .sel 컨테이너
+   *   options  [{v, text}]
+   *   value    처음 값 ("" 면 비어 있음)
+   *   onPick   고를 때 부른다
+   */
+  function mountSelect(host, options, value, onPick) {
+    const ph = host.dataset.placeholder || "선택";
+    host.innerHTML = '<button type="button" class="sel-btn"></button><div class="sel-list" hidden></div>';
+    const btn = host.querySelector(".sel-btn");
+    const list = host.querySelector(".sel-list");
+    let cur = value || "";
+
+    function render() {
+      const hit = options.find(o => o.v === cur);
+      btn.textContent = hit ? hit.text : ph;
+      btn.classList.toggle("empty", !hit);
+      list.innerHTML = options.map(o =>
+        '<button type="button" data-v="' + o.v + '"'
+        + (o.v === cur ? ' aria-current="true"' : "") + ">" + esc(o.text) + "</button>").join("");
+    }
+
+    btn.addEventListener("click", e => {
+      e.stopPropagation();
+      const opening = list.hidden;
+      closeAllPickers(list);
+      list.hidden = !opening;
+      if (opening) {
+        const sel = list.querySelector("[aria-current]");
+        if (sel) list.scrollTop = Math.max(0, sel.offsetTop - list.clientHeight / 2 + sel.offsetHeight / 2);
+      }
+    });
+
+    list.addEventListener("click", e => {
+      const b = e.target.closest("[data-v]");
+      if (!b) return;
+      cur = b.dataset.v;
+      render();
+      list.hidden = true;
+      onPick(cur);
+    });
+
+    render();
+    return { get: () => cur, set(v) { cur = v || ""; render(); } };
+  }
+
+  /** 연·월·일 세 칸을 묶어 하나의 날짜로 다룬다.
+      digits 2 면 "YY-MM-DD", 4 면 "YYYY-MM-DD" 로 주고받는다. */
+  function mountDate(hosts, conf) {
+    const pad = n => String(n).padStart(2, "0");
+    const years = [];
+    for (let y = conf.yearFrom; conf.yearFrom <= conf.yearTo ? y <= conf.yearTo : y >= conf.yearTo;
+         y += (conf.yearFrom <= conf.yearTo ? 1 : -1)) {
+      years.push({ v: conf.digits === 2 ? pad(y) : String(y), text: (conf.digits === 2 ? pad(y) : y) + "년" });
+    }
+    const months = [], days = [];
+    for (let m = 1; m <= 12; m++) months.push({ v: pad(m), text: m + "월" });
+    for (let d = 1; d <= 31; d++) days.push({ v: pad(d), text: d + "일" });
+
+    const parse = v => {
+      const s = String(v || "");
+      const re = conf.digits === 2 ? /^(\d{2})-(\d{2})-(\d{2})$/ : /^(\d{4})-(\d{2})-(\d{2})$/;
+      const m = re.exec(s);
+      return m ? { y: m[1], m: m[2], d: m[3] } : { y: "", m: "", d: "" };
+    };
+    const cur = parse(conf.value);
+    const fire = () => {
+      const y = ctl.y.get(), m = ctl.m.get(), d = ctl.d.get();
+      conf.onChange(y && m && d ? y + "-" + m + "-" + d : "");
+    };
+    const ctl = {
+      y: mountSelect(hosts.y, years, cur.y, fire),
+      m: mountSelect(hosts.m, months, cur.m, fire),
+      d: mountSelect(hosts.d, days, cur.d, fire)
+    };
+    return {
+      set(v) { const p = parse(v); ctl.y.set(p.y); ctl.m.set(p.m); ctl.d.set(p.d); }
     };
   }
 
@@ -860,6 +949,7 @@
     $, $$, esc, nf, clamp, member,
     encArr, decArr, inflate, pack,
     slides, slideHTML, mountWrapped, paintDots, mountPageNav,
+    mountSelect, mountDate,
     zodiac, dotDate, shortDate, splitJoined, ICONS, ICON_KEYS, drawIcon,
     analyze, drawArt, coverMark, savePNG,
     verifyCode, rememberMe, recallMe, forgetMe, cheersFor

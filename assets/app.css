@@ -316,9 +316,30 @@ textarea{resize:vertical;min-height:140px;line-height:1.7}
 }
 .pn-home:hover{color:var(--gold)}
 
-/* ---------- 연·월·일 고르기 ---------- */
-.ymd{display:grid;grid-template-columns:1.1fr 1fr 1fr;gap:8px}
-.ymd select{width:100%}
+/* ---------- 연·월·일 고르기 ----------
+   네이티브 목록·달력은 OS 가 그려서 테마를 못 맞추므로 직접 만든다. */
+.ymd{display:grid;grid-template-columns:1.15fr 1fr 1fr;gap:8px}
+.sel{position:relative;min-width:0}
+.sel-btn{
+  width:100%;text-align:left;cursor:pointer;
+  background:var(--ink-2);border:1px solid var(--line);border-radius:2px;
+  padding:11px 12px;color:var(--cream);font-size:15px;
+  transition:border-color .18s;
+}
+.sel-btn:hover{border-color:var(--line-2)}
+.sel-btn.empty{color:var(--muted-2)}
+.sel-list{
+  position:absolute;z-index:40;left:0;right:0;top:calc(100% + 5px);
+  max-height:246px;overflow-y:auto;overscroll-behavior:contain;
+  background:var(--ink-3);border:1px solid var(--line-2);border-radius:2px;
+  box-shadow:0 14px 34px rgba(0,0,0,.55);
+}
+.sel-list button{
+  display:block;width:100%;text-align:left;background:none;border:0;cursor:pointer;
+  padding:11px 12px;color:var(--muted);font-size:15px;
+}
+.sel-list button:hover{background:var(--ink-2);color:var(--cream)}
+.sel-list button[aria-current]{color:var(--gold);background:rgba(248,216,112,.07)}
 
 /* ---------- 아이콘 고르기 ---------- */
 .icon-pick{display:grid;grid-template-columns:repeat(auto-fit,minmax(74px,1fr));gap:10px}
