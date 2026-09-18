@@ -7,7 +7,7 @@
 <meta name="description" content="내 목소리를 분석해 만드는 FELICIA 로고.">
 <meta name="robots" content="noindex">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300&family=Gowun+Batang:wght@400;700&family=IBM+Plex+Sans+KR:wght@300;400;500&display=swap">
-<link rel="stylesheet" href="assets/app.css?v=14">
+<link rel="stylesheet" href="assets/app.css?v=15">
 </head>
 <body>
 <div class="app">
@@ -49,20 +49,25 @@
       <p class="note center" id="msg">휴대폰에서는 이미지를 길게 눌러 저장할 수도 있습니다.</p>
 
       <div class="panel" style="margin-top:30px">
-        <h3>목소리</h3>
+        <h3>나의 다짐</h3>
+        <p class="tiny" style="margin:-6px 0 14px">
+          앞으로의 다짐을 목소리로 남겨주세요. <b>30초~1분</b>이 좋습니다.
+          이 목소리가 위의 지문 무늬가 되고, 녹음은 그대로 보관됩니다.
+        </p>
         <label class="drop" id="drop" for="file">
           <input type="file" id="file" accept="audio/*" hidden>
           <b style="color:var(--gold);font-weight:400">녹음 파일 첨부</b>
           <span class="tiny" style="display:block;margin-top:6px">m4a · mp3 · wav · 끌어다 놓아도 됩니다</span>
         </label>
         <div class="row" style="margin-top:12px">
-          <button class="btn" id="rec">마이크로 15초 녹음</button>
+          <button class="btn" id="rec">여기서 바로 녹음 (60초)</button>
           <span class="tiny" id="recmsg"></span>
         </div>
         <div class="bar"><i id="bar"></i></div>
-        <p class="tiny" style="margin-top:12px">
-          15~30초면 충분합니다. <b>편한 음 → 낮은 음 → 높은 음</b>을 한 번씩 내면 지문이 더 뚜렷해집니다.
-        </p>
+        <div id="myaudio" hidden style="margin-top:16px">
+          <p class="tiny" style="margin:0 0 8px">올려둔 내 다짐</p>
+          <audio id="myplayer" controls style="width:100%"></audio>
+        </div>
       </div>
 
       <div class="panel">
@@ -109,7 +114,7 @@
   <nav class="pagenav" id="pagenav" aria-label="페이지 이동"></nav>
 </div>
 
-<script src="assets/app.js?v=14"></script>
+<script src="assets/app.js?v=15"></script>
 <script>
 (() => {
   "use strict";
@@ -180,9 +185,12 @@
     $("#all-sec").hidden = false;
     $("#whoami").innerHTML = '<b>' + esc(m.name) + '</b><span>' + esc(m.part) + '</span>';
 
+    /* 저장소가 응답하는 데 몇 초 걸린다. 그동안 빈 화면으로 보이지 않게 알린다. */
+    $("#savestate").textContent = "불러오는 중…";
     await F.logo.ready;
     try { prints = await F.store.getPrints(); } catch (e) { prints = {}; }
     rec = Object.assign({}, prints[me] || {});
+    $("#savestate").textContent = "";
 
     /* 한 군데가 실패해도 나머지는 살아나게 따로 감싼다. 예전 파일이 캐시에
        남아 섞이면 폼이 통째로 비어 보이는 일이 있었다. */
@@ -195,6 +203,8 @@
     step("analysis", () => { analysis = F.inflate(rec); });
     step("dates", dateFields);
     step("icons", icons);
+    // 이미 올려둔 다짐이 있으면 들어볼 수 있게 가져온다 (실패해도 그냥 넘어간다)
+    F.store.getAudio(me).then(a => showMyAudio(a.blob)).catch(() => {});
     step("art", paint);
     step("chips", chips);
   }
@@ -228,21 +238,57 @@
     }, 700);
   }
 
-  /* ---------- 음성 ---------- */
+  /* ---------- 다짐 녹음 ----------
+     같은 파일로 두 가지를 한다: 무늬를 뽑아 지문을 그리고, 파일 자체는
+     저장소에 올려 보관한다. 둘 중 하나가 실패해도 다른 하나는 남긴다. */
   async function handleAudio(file) {
+    const MAX = 12 * 1024 * 1024;
+    if (file.size > MAX) {
+      $("#msg").textContent = "녹음이 너무 깁니다 (12MB 넘음). 30초~1분으로 다시 해주세요.";
+      return;
+    }
     $("#msg").textContent = "분석 중…";
     $("#bar").style.width = "5%";
+
+    let analysed = false;
     try {
-      const a = await F.analyze(await file.arrayBuffer(), p => { $("#bar").style.width = Math.round(p * 100) + "%"; });
+      const a = await F.analyze(await file.arrayBuffer(), p => { $("#bar").style.width = Math.round(p * 70) + "%"; });
       analysis = a;
       Object.assign(rec, F.pack(a));
       paint();
-      $("#msg").textContent = "다 됐습니다. 아래에서 생년월일과 아이콘도 채워주세요.";
+      analysed = true;
       queueSave();
     } catch (e) {
       $("#msg").textContent = "이 파일을 읽지 못했습니다. m4a · mp3 · wav 중 다른 형식으로 시도해주세요.";
       $("#bar").style.width = "0";
+      return;
     }
+
+    // 파일 보관
+    $("#msg").textContent = "다짐을 올리는 중… (" + Math.round(file.size / 1024) + "KB)";
+    $("#bar").style.width = "85%";
+    try {
+      await F.store.putAudio(me, file);
+      rec.audio = 1;
+      $("#bar").style.width = "100%";
+      $("#msg").textContent = "다 됐습니다. 아래에서 생년월일과 아이콘도 채워주세요.";
+      showMyAudio(file);
+      queueSave();
+    } catch (e) {
+      $("#bar").style.width = "70%";
+      $("#msg").textContent = "지문은 만들어졌지만 녹음 보관에 실패했습니다. "
+        + (e && e.message ? e.message : "") + " 다시 올려보세요.";
+      showMyAudio(file);
+    }
+  }
+
+  /** 방금 올린(또는 보관돼 있던) 다짐을 들어볼 수 있게 붙인다. */
+  function showMyAudio(fileOrBlob) {
+    try {
+      const url = URL.createObjectURL(fileOrBlob);
+      $("#myplayer").src = url;
+      $("#myaudio").hidden = false;
+    } catch (e) { /* 재생만 못 하는 것이므로 넘어간다 */ }
   }
   $("#file").addEventListener("change", e => { const f = e.target.files[0]; if (f) handleAudio(f); });
   const drop = $("#drop");
@@ -250,23 +296,42 @@
   ["dragleave", "drop"].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.remove("hot"); }));
   drop.addEventListener("drop", e => { const f = e.dataTransfer.files[0]; if (f) handleAudio(f); });
 
+  /* 다짐은 길이가 사람마다 다르니 한 번 더 눌러 끝낼 수 있어야 한다. */
+  let recorder = null, recTimer = null;
   $("#rec").addEventListener("click", async () => {
+    if (recorder) { recorder.stop(); return; }
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia || !window.MediaRecorder) {
       $("#recmsg").textContent = "이 브라우저에서는 마이크를 쓸 수 없습니다. 파일로 넣어주세요."; return;
     }
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const r = new MediaRecorder(stream), chunks = [];
-      r.ondataavailable = e => chunks.push(e.data);
-      r.onstop = () => { stream.getTracks().forEach(t => t.stop()); $("#recmsg").textContent = ""; handleAudio(new Blob(chunks)); };
-      r.start();
-      let left = 15;
-      $("#recmsg").textContent = "녹음 중 " + left + "초 — 편한 음, 낮은 음, 높은 음";
-      const t = setInterval(() => {
-        left--; $("#recmsg").textContent = "녹음 중 " + left + "초";
-        if (left <= 0) { clearInterval(t); r.stop(); }
+      const chunks = [];
+      recorder = new MediaRecorder(stream);
+      recorder.ondataavailable = e => chunks.push(e.data);
+      recorder.onstop = () => {
+        clearInterval(recTimer);
+        stream.getTracks().forEach(t => t.stop());
+        recorder = null;
+        $("#rec").textContent = "여기서 바로 녹음 (60초)";
+        $("#recmsg").textContent = "";
+        const type = (chunks[0] && chunks[0].type) || "audio/webm";
+        const blob = new Blob(chunks, { type: type });
+        blob.name = "다짐." + ((type.split("/")[1] || "webm").split(";")[0]);
+        handleAudio(blob);
+      };
+      recorder.start();
+      let left = 60;
+      $("#rec").textContent = "녹음 끝내기";
+      $("#recmsg").textContent = "녹음 중 " + left + "초 — 다 말했으면 끝내기를 누르세요";
+      recTimer = setInterval(() => {
+        left--;
+        $("#recmsg").textContent = "녹음 중 " + left + "초 남음";
+        if (left <= 0 && recorder) recorder.stop();
       }, 1000);
-    } catch (e) { $("#recmsg").textContent = "마이크 권한이 없습니다. 파일로 넣어주세요."; }
+    } catch (e) {
+      recorder = null;
+      $("#recmsg").textContent = "마이크 권한이 없습니다. 파일로 넣어주세요.";
+    }
   });
 
   /* ---------- 내 정보 ----------

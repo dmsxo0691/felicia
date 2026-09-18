@@ -327,6 +327,53 @@
       await store.putPrints(all);
     },
 
+    /* ---------- 녹음 파일 ----------
+       시트 칸에는 5만 자까지만 들어가 음성을 담을 수 없으므로 저장소가
+       드라이브에 넣습니다. 여기서는 base64 로 주고받습니다. */
+    async putAudio(id, file) {
+      if (!ENDPOINT) throw new Error("저장소가 연결되지 않았습니다.");
+      const b64 = await new Promise((res, rej) => {
+        const fr = new FileReader();
+        fr.onload = () => res(String(fr.result).split(",")[1] || "");
+        fr.onerror = () => rej(new Error("파일을 읽지 못했습니다."));
+        fr.readAsDataURL(file);
+      });
+      const ext = ((file.name || "").match(/\.([A-Za-z0-9]{1,8})$/) || [, ""])[1]
+        || (String(file.type || "").split("/")[1] || "m4a").replace(/[^a-z0-9]/gi, "");
+      const r = await fetch(ENDPOINT, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify({
+          kind: "audio", action: "put", id: id,
+          ext: ext.toLowerCase(), mime: file.type || "audio/mp4", b64: b64
+        })
+      });
+      const j = await r.json();
+      if (!j.ok) throw new Error(j.error || "녹음을 저장하지 못했습니다.");
+      return j;
+    },
+
+    /** 올라온 녹음 목록. [{id, name, mime, bytes, at}] */
+    async listAudio() {
+      if (!ENDPOINT) return [];
+      const r = await fetch(ENDPOINT + "?kind=audios&t=" + Date.now());
+      const j = await r.json();
+      if (!j.ok) throw new Error(j.error || "목록을 불러오지 못했습니다.");
+      return j.items || [];
+    },
+
+    /** 녹음 하나를 받아 Blob 으로 돌려줍니다. */
+    async getAudio(id) {
+      if (!ENDPOINT) throw new Error("저장소가 연결되지 않았습니다.");
+      const r = await fetch(ENDPOINT + "?kind=audio&id=" + encodeURIComponent(id) + "&t=" + Date.now());
+      const j = await r.json();
+      if (!j.ok) throw new Error(j.error || "녹음을 불러오지 못했습니다.");
+      const bin = atob(j.b64);
+      const u8 = new Uint8Array(bin.length);
+      for (let i = 0; i < bin.length; i++) u8[i] = bin.charCodeAt(i);
+      return { name: j.name, mime: j.mime, bytes: j.bytes, blob: new Blob([u8], { type: j.mime }) };
+    },
+
     async putPrints(map) {
       if (!ENDPOINT) {
         if (!lsWrite(LS_PRINTS, map)) throw new Error("이 브라우저에 저장할 수 없습니다.");
@@ -411,13 +458,8 @@
       if (s.big) html += '<div class="wr-big">' + esc(s.big) + "</div>";
       if (s.unit) html += '<p class="wr-unit">' + esc(s.unit) + "</p>";
     }
-    let foot = s.foot;
-    /* 지문 로고 안에 이름·파트·날짜가 이미 들어 있으니 음역만 덧붙인다. */
-    if (s.member && prints && prints[s.memberId] && prints[s.memberId].env) {
-      const p = prints[s.memberId];
-      foot = "음역 " + p.low + " – " + p.high;
-    }
-    if (foot) html += '<p class="wr-foot">' + esc(foot) + "</p>";
+    /* 지문 로고 안에 이름·파트·날짜가 다 들어 있으므로 덧붙일 말이 없다. */
+    if (s.foot) html += '<p class="wr-foot">' + esc(s.foot) + "</p>";
     return '<div class="wr-slide fadein">' + html + "</div>";
   }
 

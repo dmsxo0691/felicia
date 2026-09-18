@@ -7,7 +7,7 @@
 <meta name="description" content="FELICIA 1박 2일 첫째 날 밤 진행 화면.">
 <meta name="robots" content="noindex">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300&family=Gowun+Batang:wght@400;700&family=IBM+Plex+Sans+KR:wght@300;400;500&display=swap">
-<link rel="stylesheet" href="assets/app.css?v=14">
+<link rel="stylesheet" href="assets/app.css?v=15">
 </head>
 <body>
 <div class="app">
@@ -16,6 +16,7 @@
     <nav class="nav" id="nav" aria-label="화면 이동">
       <button data-go="home" aria-current="true">순서</button>
       <button data-go="wrapped">결산</button>
+      <button data-go="voice">다짐</button>
       <button data-go="cheers">응원</button>
     </nav>
   </header>
@@ -33,7 +34,7 @@
         <li><a class="order-link" href="voice.html">
           <span class="idx">01</span><span class="ttl">목소리 지문</span>
           <span class="state" id="st-voice">0/7</span>
-          <span class="sub">단원들이 각자 확인 코드로 들어가 직접 만듭니다. 여기서 만든 음역이 결산에도 들어갑니다.</span>
+          <span class="sub">단원들이 각자 확인 코드로 들어가 다짐을 녹음하고 지문을 만듭니다. 만든 지문은 결산 개인 슬라이드에 그대로 나옵니다.</span>
         </a></li>
         <li><button data-go="wrapped">
           <span class="idx">02</span><span class="ttl">결산 상영</span>
@@ -63,6 +64,20 @@
     </section>
 
 
+    <!-- 다짐 녹음 -->
+    <section id="view-voice" class="wrap" hidden>
+      <div class="head">
+        <p class="eyebrow">01 — 다짐 녹음</p>
+        <h1>단원들의 다짐</h1>
+        <p class="lede">단원들이 올린 녹음입니다. 여기서 듣고 내려받을 수 있습니다. 파일은 저장소 계정의 드라이브 <b>FELICIA 녹음</b> 폴더에 보관됩니다.</p>
+        <div class="row">
+          <button class="btn" id="aud-reload">새로 불러오기</button>
+          <span class="tiny" id="aud-count"></span>
+        </div>
+      </div>
+      <ul class="msg-list" id="aud-list"></ul>
+    </section>
+
     <!-- 응원 -->
     <section id="view-cheers" class="wrap" hidden>
       <div class="head">
@@ -79,7 +94,7 @@
   </main>
 </div>
 
-<script src="assets/app.js?v=14"></script>
+<script src="assets/app.js?v=15"></script>
 <script>
 (() => {
   "use strict";
@@ -93,7 +108,7 @@
   if (!F.store.remote) $("#local-warn").hidden = false;
 
   /* ---------- 화면 이동 ---------- */
-  const VIEWS = ["home", "wrapped", "cheers"];
+  const VIEWS = ["home", "wrapped", "voice", "cheers"];
   let view = "home";
   function go(v) {
     view = v;
@@ -101,6 +116,7 @@
     $$("#nav button").forEach(b => b.setAttribute("aria-current", String(b.dataset.go === v)));
     window.scrollTo({ top: 0, behavior: "instant" });
     if (v === "cheers" && !cheersLoaded) loadCheers();
+    if (v === "voice" && !audioLoaded) loadAudio();
   }
   document.addEventListener("click", e => {
     const b = e.target.closest("[data-go]");
@@ -114,6 +130,80 @@
     keys: true, active: () => view === "wrapped"
   });
   $("#wr-stage").classList.add("wrap");
+
+  /* ---------- 다짐 녹음 ---------- */
+  let audioLoaded = false;
+  const audioUrls = [];      // 만든 blob 주소를 모아 나중에 정리한다
+
+  async function loadAudio() {
+    $("#aud-list").innerHTML = '<li class="empty">불러오는 중…</li>';
+    let items = [];
+    try {
+      items = await F.store.listAudio();
+      audioLoaded = true;
+    } catch (e) {
+      $("#aud-list").innerHTML = '<li class="empty">불러오지 못했습니다. 저장소가 최신 판인지 확인해주세요.</li>';
+      return;
+    }
+    const byId = {};
+    items.forEach(i => { byId[i.id] = i; });
+    $("#aud-count").textContent = items.length + " / " + TEAM.members.length + "명 올림";
+
+    $("#aud-list").innerHTML = TEAM.members.map(m => {
+      const it = byId[m.id];
+      return "<li>"
+        + '<p class="to">' + esc(m.part) + "</p>"
+        + '<p class="t">' + esc(m.name) + "</p>"
+        + (it
+            ? '<p class="f">' + Math.round(it.bytes / 1024) + "KB · " + esc(String(it.at).slice(0, 10)) + "</p>"
+              + '<div class="row" style="margin-top:10px">'
+              + '<button class="btn" data-play="' + m.id + '">듣기</button>'
+              + '<button class="btn ghost" data-dl="' + m.id + '">내려받기</button>'
+              + '<span class="tiny" data-st="' + m.id + '"></span></div>'
+              + '<div data-slot="' + m.id + '" style="margin-top:10px"></div>'
+            : '<p class="f">아직 올리지 않았습니다.</p>')
+        + "</li>";
+    }).join("");
+  }
+
+  async function fetchAudio(id, stEl) {
+    stEl.textContent = "받는 중…";
+    const a = await F.store.getAudio(id);
+    const url = URL.createObjectURL(a.blob);
+    audioUrls.push(url);
+    stEl.textContent = "";
+    return { a: a, url: url };
+  }
+
+  $("#aud-list").addEventListener("click", async e => {
+    const play = e.target.closest("[data-play]");
+    const dl = e.target.closest("[data-dl]");
+    if (!play && !dl) return;
+    const id = (play || dl).dataset.play || (play || dl).dataset.dl;
+    const st = $('[data-st="' + id + '"]');
+    try {
+      const got = await fetchAudio(id, st);
+      if (play) {
+        const slot = $('[data-slot="' + id + '"]');
+        slot.innerHTML = '<audio controls autoplay style="width:100%"></audio>';
+        slot.firstElementChild.src = got.url;
+      } else {
+        const m = F.member(id);
+        const a = document.createElement("a");
+        a.href = got.url;
+        a.download = "felicia-다짐-" + (m ? m.name : id) + "." + (got.a.name.split(".").pop() || "m4a");
+        document.body.appendChild(a); a.click(); a.remove();
+      }
+    } catch (err) {
+      st.textContent = (err && err.message) || "실패했습니다.";
+    }
+  });
+
+  $("#aud-reload").addEventListener("click", () => {
+    audioUrls.splice(0).forEach(u => URL.revokeObjectURL(u));
+    audioLoaded = false;
+    loadAudio();
+  });
 
   /* ---------- 응원 ---------- */
   let cheersLoaded = false;
