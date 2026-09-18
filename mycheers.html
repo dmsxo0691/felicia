@@ -7,7 +7,7 @@
 <meta name="description" content="확인 코드를 넣으면 나에게 온 응원 메시지만 보입니다.">
 <meta name="robots" content="noindex">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300&family=Gowun+Batang:wght@400;700&family=IBM+Plex+Sans+KR:wght@300;400;500&display=swap">
-<link rel="stylesheet" href="assets/app.css?v=13">
+<link rel="stylesheet" href="assets/app.css?v=14">
 </head>
 <body>
 <div class="app">
@@ -48,7 +48,7 @@
   <nav class="pagenav" id="pagenav" aria-label="페이지 이동"></nav>
 </div>
 
-<script src="assets/app.js?v=13"></script>
+<script src="assets/app.js?v=14"></script>
 <script>
 (() => {
   "use strict";
@@ -83,16 +83,7 @@
     const m = F.member(id);
     $("#gate-sec").hidden = true;
     $("#view-sec").hidden = false;
-    $("#whoami").innerHTML = '<b>' + esc(m.name) + '</b><span>' + esc(m.part)
-      + '</span><button class="btn ghost" id="switch" style="font-size:11px">내가 아닙니다</button>';
-    $("#switch").addEventListener("click", () => {
-      F.forgetMe();
-      me = null; list = []; idx = 0; open = false;
-      input.value = "";
-      $("#view-sec").hidden = true;
-      $("#gate-sec").hidden = false;
-      input.focus();
-    });
+    $("#whoami").innerHTML = '<b>' + esc(m.name) + '</b><span>' + esc(m.part) + '</span>';
     load();
   }
 
@@ -142,6 +133,8 @@
 
   /* ---------- 시작 ---------- */
   F.mountPageNav($("#pagenav"), "mycheers");
+  /* 기기를 함께 쓰다 다른 사람으로 들어가야 하면 주소 뒤에 ?reset 을 붙인다. */
+  if (/[?&]reset/.test(location.search)) F.forgetMe();
   const remembered = F.recallMe();
   if (remembered) enter(remembered);
   else input.focus();

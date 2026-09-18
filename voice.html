@@ -7,7 +7,7 @@
 <meta name="description" content="내 목소리를 분석해 만드는 FELICIA 로고.">
 <meta name="robots" content="noindex">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300&family=Gowun+Batang:wght@400;700&family=IBM+Plex+Sans+KR:wght@300;400;500&display=swap">
-<link rel="stylesheet" href="assets/app.css?v=13">
+<link rel="stylesheet" href="assets/app.css?v=14">
 </head>
 <body>
 <div class="app">
@@ -109,7 +109,7 @@
   <nav class="pagenav" id="pagenav" aria-label="페이지 이동"></nav>
 </div>
 
-<script src="assets/app.js?v=13"></script>
+<script src="assets/app.js?v=14"></script>
 <script>
 (() => {
   "use strict";
@@ -178,17 +178,7 @@
     $("#gate-sec").hidden = true;
     $("#make-sec").hidden = false;
     $("#all-sec").hidden = false;
-    $("#whoami").innerHTML = '<b>' + esc(m.name) + '</b><span>' + esc(m.part)
-      + '</span><button class="btn ghost" id="switch" style="font-size:11px">내가 아닙니다</button>';
-    $("#switch").addEventListener("click", () => {
-      F.forgetMe();
-      me = null; rec = {}; analysis = null;
-      input.value = "";
-      $("#make-sec").hidden = true;
-      $("#all-sec").hidden = true;
-      $("#gate-sec").hidden = false;
-      input.focus();
-    });
+    $("#whoami").innerHTML = '<b>' + esc(m.name) + '</b><span>' + esc(m.part) + '</span>';
 
     await F.logo.ready;
     try { prints = await F.store.getPrints(); } catch (e) { prints = {}; }
@@ -358,6 +348,8 @@
 
   /* ---------- 시작 ---------- */
   F.mountPageNav($("#pagenav"), "voice");
+  /* 기기를 함께 쓰다 다른 사람으로 들어가야 하면 주소 뒤에 ?reset 을 붙인다. */
+  if (/[?&]reset/.test(location.search)) F.forgetMe();
   const remembered = F.recallMe();
   if (remembered) enter(remembered);
   else input.focus();

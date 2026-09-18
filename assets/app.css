@@ -120,6 +120,9 @@ textarea{resize:vertical;min-height:140px;line-height:1.7}
   margin:0 0 30px;padding-left:.48em;
 }
 .wr-cover .wr-lead{font-family:var(--serif);font-size:clamp(34px,8.5vw,56px);line-height:1.25;margin:0}
+/* 개인 슬라이드의 지문 로고. 고정 높이 카드 안에 설명 줄까지 들어가야 하므로
+   높이를 기준으로 맞춘다. */
+.wr-art{display:block;margin:0 auto;height:clamp(230px,37vh,420px);width:auto;max-width:100%}
 .wr-words{display:flex;flex-wrap:wrap;gap:8px 10px;justify-content:center;margin:20px 0 0}
 .wr-words span{border:1px solid var(--line-2);border-radius:999px;padding:5px 15px;font-size:14px;color:var(--gold-soft)}
 .wr-nav{display:flex;align-items:center;justify-content:center;gap:16px;flex-wrap:wrap}

@@ -383,21 +383,40 @@
     return out;
   }
 
-  /* 슬라이드 하나를 HTML로. prints 가 있으면 개인 슬라이드에 측정 음역을 얹는다. */
+  /* 개인 슬라이드에 띄울 지문 로고. 넘길 때마다 다시 그리면 느리니 담아둔다. */
+  const slideArtCache = {};
+  function slideArt(memberId, p) {
+    const key = memberId + ":" + String(p.env || "").slice(0, 16) + ":" + (p.icon || "") + ":" + (p.born || "") + ":" + (p.joined || "");
+    if (slideArtCache[key]) return slideArtCache[key];
+    const c = document.createElement("canvas");
+    c.width = c.height = 900;                      // 화면용이므로 2048 까지 갈 필요가 없다
+    drawArt(c, { memberId: memberId, a: inflate(p), info: p }, "clear");
+    return (slideArtCache[key] = c.toDataURL("image/png"));
+  }
+
+  /* 슬라이드 하나를 HTML로. 개인 슬라이드에는 그 사람의 지문 로고를 띄운다. */
   function slideHTML(s, prints) {
     let html = '<p class="wr-kicker">' + esc(s.kick || "") + "</p>";
     if (s.member) {
-      html += '<p class="wr-lead">' + esc(s.member) + "</p>";
       const p = prints && prints[s.memberId];
-      if (p) html += '<div class="wr-big" style="font-size:clamp(32px,6.5vw,68px)">' + esc(p.low + " – " + p.high) + "</div>";
-      else html += '<p class="wr-unit">목소리 지문 준비 중</p>';
+      if (p && p.env) {
+        html += '<img class="wr-art" src="' + slideArt(s.memberId, p)
+          + '" alt="' + esc(s.member) + '의 목소리 지문 로고">';
+      } else {
+        html += '<p class="wr-lead">' + esc(s.member) + "</p>"
+          + '<p class="wr-unit">목소리 지문 준비 중</p>';
+      }
     } else {
       if (s.lead) html += '<p class="wr-lead">' + esc(s.lead).replace(/\n/g, "<br>") + "</p>";
       if (s.big) html += '<div class="wr-big">' + esc(s.big) + "</div>";
       if (s.unit) html += '<p class="wr-unit">' + esc(s.unit) + "</p>";
     }
     let foot = s.foot;
-    if (s.member && prints && prints[s.memberId]) foot = "오늘 측정한 음역입니다.";
+    /* 지문 로고 안에 이름·파트·날짜가 이미 들어 있으니 음역만 덧붙인다. */
+    if (s.member && prints && prints[s.memberId] && prints[s.memberId].env) {
+      const p = prints[s.memberId];
+      foot = "음역 " + p.low + " – " + p.high;
+    }
     if (foot) html += '<p class="wr-foot">' + esc(foot) + "</p>";
     return '<div class="wr-slide fadein">' + html + "</div>";
   }
@@ -759,19 +778,23 @@
    * 지문 로고 한 장을 캔버스에 그린다.
    *   cv    정사각 캔버스
    *   vp    {memberId, a:{env,bands,low,high,avg,seconds}} 또는 null
-   *   bg    "cream" | "ink"
+   *   bg    "cream" | "ink" | "clear" (배경을 칠하지 않는다 — 결산 슬라이드용)
    */
   function drawArt(cv, vp, bg) {
     const g = cv.getContext("2d");
     const S = cv.width;
-    const onCream = bg !== "ink";
-    const ground = onCream ? "#F6F1E3" : "#14120D";
+    const clear = bg === "clear";
+    const onCream = !clear && bg !== "ink";
     const fg = onCream ? "#C6A33A" : "#F8D870";
     const txt = onCream ? "#3B3629" : "#E8E1CC";
 
     g.setTransform(1, 0, 0, 1, 0, 0);
-    g.fillStyle = ground;
-    g.fillRect(0, 0, S, S);
+    if (clear) {
+      g.clearRect(0, 0, S, S);      // 카드 배경이 그대로 비쳐 덩어리로 도드라지지 않는다
+    } else {
+      g.fillStyle = onCream ? "#F6F1E3" : "#14120D";
+      g.fillRect(0, 0, S, S);
+    }
 
     const box = S * LOGO_BOX.w, left = (S - box) / 2, top = S * LOGO_BOX.top;
     const cx = left + box * LOGO_GEOM.cx, cy = top + box * LOGO_GEOM.cy, R = box * LOGO_GEOM.r;
