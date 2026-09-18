@@ -7,7 +7,7 @@
 <meta name="description" content="내 목소리를 분석해 만드는 FELICIA 로고.">
 <meta name="robots" content="noindex">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300&family=Gowun+Batang:wght@400;700&family=IBM+Plex+Sans+KR:wght@300;400;500&display=swap">
-<link rel="stylesheet" href="assets/app.css?v=15">
+<link rel="stylesheet" href="assets/app.css?v=16">
 </head>
 <body>
 <div class="app">
@@ -114,7 +114,7 @@
   <nav class="pagenav" id="pagenav" aria-label="페이지 이동"></nav>
 </div>
 
-<script src="assets/app.js?v=15"></script>
+<script src="assets/app.js?v=16"></script>
 <script>
 (() => {
   "use strict";
@@ -264,17 +264,26 @@
       return;
     }
 
-    // 파일 보관
-    $("#msg").textContent = "다짐을 올리는 중… (" + Math.round(file.size / 1024) + "KB)";
-    $("#bar").style.width = "85%";
+    /* 파일 보관. 저장소가 base64 로 주고받으며 드라이브를 거치느라 느리다.
+       234KB 가 12초쯤 걸렸으니, 멈춘 것처럼 보이지 않게 초를 세어 보여준다. */
+    const kb = Math.round(file.size / 1024);
+    let sec = 0;
+    $("#msg").textContent = "다짐을 올리는 중… " + kb + "KB (20~40초 걸립니다)";
+    const tick = setInterval(() => {
+      sec++;
+      $("#msg").textContent = "다짐을 올리는 중… " + kb + "KB · " + sec + "초 — 창을 닫지 마세요";
+      $("#bar").style.width = Math.min(98, 70 + sec * 1.2) + "%";
+    }, 1000);
     try {
       await F.store.putAudio(me, file);
+      clearInterval(tick);
       rec.audio = 1;
       $("#bar").style.width = "100%";
       $("#msg").textContent = "다 됐습니다. 아래에서 생년월일과 아이콘도 채워주세요.";
       showMyAudio(file);
       queueSave();
     } catch (e) {
+      clearInterval(tick);
       $("#bar").style.width = "70%";
       $("#msg").textContent = "지문은 만들어졌지만 녹음 보관에 실패했습니다. "
         + (e && e.message ? e.message : "") + " 다시 올려보세요.";
