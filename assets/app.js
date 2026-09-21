@@ -465,46 +465,18 @@
       ]
     });
 
-    TEAM.members.forEach((m, i) => {
-      out.push({
-        kick: "단원 " + String(i + 1).padStart(2, "0") + " · " + m.part,
-        member: m.name,
-        memberId: m.id
-      });
-    });
-
     /* 닫는 장은 말을 얹지 않는다. 표지와 같은 모습으로 날짜만 남긴다. */
     out.push({ kick: "Felicia", lead: TEAM.trip.replace(/-/g, ". "), quiet: true, cover: true, hold: 3000 });
 
     return out;
   }
 
-  /* 개인 슬라이드에 띄울 지문 로고. 넘길 때마다 다시 그리면 느리니 담아둔다. */
-  const slideArtCache = {};
-  function slideArt(memberId, p) {
-    const key = memberId + ":" + String(p.env || "").slice(0, 16) + ":" + (p.icon || "") + ":" + (p.born || "") + ":" + (p.joined || "");
-    if (slideArtCache[key]) return slideArtCache[key];
-    const c = document.createElement("canvas");
-    c.width = c.height = 900;                      // 화면용이므로 2048 까지 갈 필요가 없다
-    drawArt(c, { memberId: memberId, a: inflate(p), info: p }, "clear");
-    return (slideArtCache[key] = c.toDataURL("image/png"));
-  }
-
-  /* 슬라이드 하나를 HTML로. 개인 슬라이드에는 그 사람의 지문 로고를 띄운다. */
-  function slideHTML(s, prints) {
+  /* 슬라이드 하나를 HTML로. */
+  function slideHTML(s) {
     /* 머리말이 없으면 아예 넣지 않는다. 빈 칸이 자리를 차지해 아래 글이
        가운데에서 밀려 내려간다. */
     let html = s.kick ? '<p class="wr-kicker">' + esc(s.kick) + "</p>" : "";
-    if (s.member) {
-      const p = prints && prints[s.memberId];
-      if (p && p.env) {
-        html += '<img class="wr-art" src="' + slideArt(s.memberId, p)
-          + '" alt="' + esc(s.member) + '의 목소리 지문 로고">';
-      } else {
-        html += '<p class="wr-lead">' + esc(s.member) + "</p>"
-          + '<p class="wr-unit">목소리 지문 준비 중</p>';
-      }
-    } else {
+    {
       /* lines 는 한 줄씩 텀을 두고 들어온다. 한 덩어리로 넣으면 같이 뜬다.
          줄마다 다른 글꼴을 주려면 {t, cls} 로 적는다. */
       if (s.lines) {
@@ -558,7 +530,6 @@
   function slideMs(s) {
     let d = 4400;
     if (s.num != null) d += 900;           // 큰 숫자는 한 박자 머물게
-    if (s.member) d += 1700;
     if (s.cover) d += 600;
     const lineText = s.lines
       ? s.lines.map(l => (typeof l === "string" ? l : l.t)).join("")
@@ -583,7 +554,7 @@
     const barEl = opts.progress || null, playEl = opts.play || null;
     const reduced = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-    let idx = 0, arr = slides(), prints = opts.prints || null;
+    let idx = 0, arr = slides();
     let playing = !!opts.auto && !reduced;
     let timer = null, outTimer = null;
 
@@ -593,7 +564,7 @@
       const s = arr[idx];
       stageEl.className = "wr" + (s.quiet ? " wr-quiet" : "") + (s.cover ? " wr-cover" : "")
         + (reduced ? "" : " wr-anim");
-      stageEl.innerHTML = slideHTML(s, prints);
+      stageEl.innerHTML = slideHTML(s);
       paintDots(dotsEl, idx, arr.length);
       if (prevEl) prevEl.disabled = idx === 0;
       if (nextEl) nextEl.textContent = idx === arr.length - 1 ? "처음으로" : "다음";
@@ -676,7 +647,6 @@
       paint: render,
       step: go,
       setPlaying,
-      setPrints(p) { prints = p; render(); schedule(); },
       reset() { clearTimers(); idx = 0; arr = slides(); render(); schedule(); }
     };
   }
@@ -780,7 +750,7 @@
      6-2. 페이지 사이 이동
      ====================================================================== */
   const PAGES = [
-    { key: "voice",    n: "01", title: "목소리 지문",    href: "voice.html" },
+    { key: "voice",    n: "01", title: "나의 다짐",      href: "voice.html" },
     { key: "wrapped",  n: "02", title: "우리의 결산",    href: "wrapped.html" },
     { key: "mycheers", n: "03", title: "나에게 온 응원", href: "mycheers.html" }
   ];

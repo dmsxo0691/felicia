@@ -3,11 +3,11 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>목소리 지문 — FELICIA</title>
-<meta name="description" content="내 목소리를 분석해 만드는 FELICIA 로고.">
+<title>나의 다짐 — FELICIA</title>
+<meta name="description" content="앞으로의 다짐을 목소리로 남깁니다.">
 <meta name="robots" content="noindex">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300&family=Gowun+Batang:wght@400;700&family=IBM+Plex+Sans+KR:wght@300;400;500&display=swap">
-<link rel="stylesheet" href="assets/app.css?v=31">
+<link rel="stylesheet" href="assets/app.css?v=32">
 </head>
 <body>
 <div class="app">
@@ -17,8 +17,8 @@
     <div class="sec-in">
       <div class="gate">
         <p class="eyebrow">01</p>
-        <h2>목소리 지문</h2>
-        <p class="tiny" style="margin:0 0 26px">내 것을 만들려면 네 자리 확인 코드를 넣어주세요.</p>
+        <h2>나의 다짐</h2>
+        <p class="tiny" style="margin:0 0 26px">받으신 네 자리 확인 코드를 넣어주세요.</p>
         <label for="code" class="tiny" style="display:block;margin-bottom:10px;letter-spacing:.12em;text-transform:uppercase">확인 코드</label>
         <input class="code-in" type="text" id="code" inputmode="numeric" autocomplete="off"
                maxlength="4" pattern="[0-9]*" placeholder="····" aria-describedby="gate-msg">
@@ -30,29 +30,17 @@
     </div>
   </section>
 
-  <!-- 만들기 -->
+  <!-- 녹음 -->
   <section class="sec" id="make-sec" style="border-top:0" hidden>
     <div class="sec-in">
       <p class="eyebrow center">01</p>
-      <h2>내 목소리 지문</h2>
+      <h2>나의 다짐</h2>
       <p class="whoami" id="whoami"></p>
 
-      <div class="art-box" id="art"></div>
-
-      <div class="row" style="margin-top:16px;justify-content:center">
-        <button class="btn" id="save" disabled>PNG로 저장</button>
-        <div class="seg" role="group" aria-label="배경">
-          <button id="bg-cream" aria-pressed="true">아이보리</button>
-          <button id="bg-ink" aria-pressed="false">먹색</button>
-        </div>
-      </div>
-      <p class="note center" id="msg">휴대폰에서는 이미지를 길게 눌러 저장할 수도 있습니다.</p>
-
-      <div class="panel" style="margin-top:30px">
-        <h3>나의 다짐</h3>
-        <p class="tiny" style="margin:-6px 0 14px">
+      <div class="panel" style="margin-top:26px">
+        <p class="tiny" style="margin:0 0 16px">
           앞으로의 다짐을 목소리로 남겨주세요. <b>30초~1분</b>이 좋습니다.
-          이 목소리가 위의 지문 무늬가 되고, 녹음은 그대로 보관됩니다.
+          한 번 올리면 그대로 보관되고, 다시 올리면 덮어씁니다.
         </p>
         <label class="drop" id="drop" for="file">
           <input type="file" id="file" accept="audio/*" hidden>
@@ -64,53 +52,23 @@
           <span class="tiny" id="recmsg"></span>
         </div>
         <div class="bar"><i id="bar"></i></div>
+        <p class="note" id="msg" style="margin:14px 0 0"></p>
       </div>
 
-      <div class="panel">
-        <h3>내 정보</h3>
-        <div class="grid2">
-          <div class="field">
-            <label>생년월일</label>
-            <div class="ymd">
-              <div class="sel" id="b-y" data-placeholder="년"></div>
-              <div class="sel" id="b-m" data-placeholder="월"></div>
-              <div class="sel" id="b-d" data-placeholder="일"></div>
-            </div>
-          </div>
-          <div class="field">
-            <label>입교 날짜</label>
-            <div class="ymd">
-              <div class="sel" id="j-y" data-placeholder="년"></div>
-              <div class="sel" id="j-m" data-placeholder="월"></div>
-              <div class="sel" id="j-d" data-placeholder="일"></div>
-            </div>
-          </div>
-        </div>
-        <p class="tiny" id="zodiac-note" style="margin:-6px 0 0">생년월일을 넣으면 별자리가 자동으로 붙습니다.</p>
+      <!-- 곁길. 하고 싶은 사람만 갑니다. -->
+      <div class="row" style="margin-top:26px;justify-content:center">
+        <a class="btn ghost" href="print.html" style="font-size:12px">목소리 지문 로고 만들기 →</a>
       </div>
-
-      <div class="panel">
-        <h3>내 아이콘</h3>
-        <div class="icon-pick" id="icons" role="group" aria-label="아이콘 선택"></div>
-      </div>
-
-      <p class="note center" id="savestate"></p>
-    </div>
-  </section>
-
-  <!-- 모두 보기 -->
-  <section class="sec" id="all-sec" hidden>
-    <div class="sec-in">
-      <h2>단원들의 지문</h2>
-      <div class="chips" id="chips" role="group" aria-label="단원 선택" style="margin-top:20px"></div>
-      <div class="art-box" id="art2"></div>
+      <p class="tiny center" style="margin-top:10px;opacity:.7">
+        녹음한 목소리로 나만의 로고를 그려 내려받을 수 있습니다. 하고 싶은 분만 하세요.
+      </p>
     </div>
   </section>
 
   <nav class="pagenav" id="pagenav" aria-label="페이지 이동"></nav>
 </div>
 
-<script src="assets/app.js?v=31"></script>
+<script src="assets/app.js?v=32"></script>
 <script>
 (() => {
   "use strict";
@@ -118,9 +76,8 @@
 
   /* 브라우저가 예전 app.js 를 캐시하고 있으면 필요한 함수가 없어 화면이
      비어 보인다. 그 경우 빈 폼 대신 무엇을 하면 되는지 알려준다. */
-  const needed = ["mountDate", "mountSelect", "shortDate", "drawIcon", "inflate", "pack", "analyze"];
-  const missing = !F ? ["전체"] : needed.filter(k => typeof F[k] !== "function")
-    .concat(!F.ICON_KEYS || !F.ICON_KEYS.length ? ["ICON_KEYS"] : []);
+  const needed = ["analyze", "pack", "verifyCode"];
+  const missing = !F ? ["전체"] : needed.filter(k => typeof F[k] !== "function");
   if (missing.length) {
     document.body.innerHTML =
       '<div style="max-width:420px;margin:18vh auto;padding:0 20px;text-align:center;'
@@ -138,19 +95,10 @@
     return;
   }
 
-  const { $, esc, TEAM } = F;
+  const { $, esc } = F;
 
-  const canvas = document.createElement("canvas");
-  canvas.width = canvas.height = 2048;
-  const canvas2 = document.createElement("canvas");
-  canvas2.width = canvas2.height = 2048;
-
-  let me = null;          // 내 단원 id
-  let prints = {};        // 전체
+  let me = null;
   let rec = {};           // 내 기록 (env·bands·born·joined·icon)
-  let analysis = null;    // 화면에 그릴 분석 결과
-  let bg = "cream";
-  let saveTimer = null;
   /* 읽기가 실패했는데 그대로 저장하면 이미 저장돼 있던 생년월일·아이콘이
      빈 값으로 덮인다. 실제로 그렇게 값이 지워진 적이 있다. */
   let loaded = false;
@@ -181,76 +129,35 @@
     const m = F.member(id);
     $("#gate-sec").hidden = true;
     $("#make-sec").hidden = false;
-    $("#all-sec").hidden = false;
     $("#whoami").innerHTML = '<b>' + esc(m.name) + '</b><span>' + esc(m.part) + '</span>';
 
     /* 저장소가 응답하는 데 몇 초 걸린다. 그동안 빈 화면으로 보이지 않게 알린다. */
-    $("#savestate").textContent = "불러오는 중…";
-    await F.logo.ready;
+    $("#msg").textContent = "불러오는 중…";
     try {
-      prints = await F.store.getPrints();
+      const prints = await F.store.getPrints();
+      rec = Object.assign({}, prints[me] || {});
       loaded = true;
-      $("#savestate").textContent = "";
+      $("#msg").textContent = rec.audio
+        ? "이미 다짐을 올리셨습니다. 다시 올리면 덮어씁니다."
+        : "";
     } catch (e) {
-      prints = {};
+      rec = {};
       loaded = false;
-      $("#savestate").textContent = "저장된 내용을 불러오지 못했습니다. "
-        + "이대로 고치면 기존 기록이 지워질 수 있어 저장을 잠가둡니다. 새로고침해주세요.";
+      $("#msg").textContent = "저장된 내용을 불러오지 못했습니다. "
+        + "이대로 올리면 기존 기록이 지워질 수 있어 잠가둡니다. 새로고침해주세요.";
     }
-    rec = Object.assign({}, prints[me] || {});
-
-    /* 한 군데가 실패해도 나머지는 살아나게 따로 감싼다. 예전 파일이 캐시에
-       남아 섞이면 폼이 통째로 비어 보이는 일이 있었다. */
-    const step = (what, fn) => {
-      try { fn(); } catch (e) {
-        console.error("[felicia] " + what, e);
-        $("#savestate").textContent = "화면 일부를 불러오지 못했습니다. 새로고침(Ctrl+Shift+R)해주세요.";
-      }
-    };
-    step("analysis", () => { analysis = F.inflate(rec); });
-    step("dates", dateFields);
-    step("icons", icons);
-    step("art", paint);
-    step("chips", chips);
   }
 
-  /* ---------- 그리기 ---------- */
-  function paint() {
-    F.drawArt(canvas, { memberId: me, a: analysis, info: rec }, bg);
-    const m = F.member(me);
-    $("#art").innerHTML = '<img class="art" src="' + canvas.toDataURL("image/png")
-      + '" alt="' + esc(m ? m.name : "") + '의 목소리 지문 로고">';
-    $("#save").disabled = false;
-    const z = F.zodiac(rec.born);
-    $("#zodiac-note").textContent = z
-      ? "별자리: " + z + " — 자동으로 계산했습니다."
-      : "생년월일을 넣으면 별자리가 자동으로 붙습니다.";
-  }
-
-  /* ---------- 저장 ---------- */
-  function queueSave() {
+  /* ---------- 다짐 ----------
+     같은 파일로 두 가지를 한다: 파일 자체는 저장소에 올려 보관하고,
+     무늬(env·bands)는 따로 담아둔다. 지문 로고를 만들고 싶은 사람은
+     print.html 에서 이 무늬로 바로 그린다. 둘 중 하나가 실패해도 다른
+     하나는 남긴다. */
+  async function handleAudio(file) {
     if (!loaded) {
-      $("#savestate").textContent = "불러오지 못한 상태라 저장하지 않습니다. 새로고침해주세요.";
+      $("#msg").textContent = "불러오지 못한 상태라 올리지 않습니다. 새로고침해주세요.";
       return;
     }
-    clearTimeout(saveTimer);
-    $("#savestate").textContent = "저장 중…";
-    saveTimer = setTimeout(async () => {
-      try {
-        await F.store.mergePrint(me, rec);
-        prints[me] = rec;
-        $("#savestate").textContent = "저장했습니다. 결산과 단원 목록에도 반영됩니다.";
-        chips();
-      } catch (e) {
-        $("#savestate").textContent = "저장하지 못했습니다. 잠시 후 다시 시도해주세요.";
-      }
-    }, 700);
-  }
-
-  /* ---------- 다짐 녹음 ----------
-     같은 파일로 두 가지를 한다: 무늬를 뽑아 지문을 그리고, 파일 자체는
-     저장소에 올려 보관한다. 둘 중 하나가 실패해도 다른 하나는 남긴다. */
-  async function handleAudio(file) {
     const MAX = 12 * 1024 * 1024;
     if (file.size > MAX) {
       $("#msg").textContent = "녹음이 너무 깁니다 (12MB 넘음). 30초~1분으로 다시 해주세요.";
@@ -259,14 +166,10 @@
     $("#msg").textContent = "분석 중…";
     $("#bar").style.width = "5%";
 
-    let analysed = false;
     try {
       const a = await F.analyze(await file.arrayBuffer(), p => { $("#bar").style.width = Math.round(p * 70) + "%"; });
-      analysis = a;
       Object.assign(rec, F.pack(a));
-      paint();
-      analysed = true;
-      queueSave();
+      F.store.mergePrint(me, rec).catch(() => { /* 파일 보관이 본론이다 */ });
     } catch (e) {
       $("#msg").textContent = "이 파일을 읽지 못했습니다. m4a · mp3 · wav 중 다른 형식으로 시도해주세요.";
       $("#bar").style.width = "0";
@@ -288,12 +191,12 @@
       clearInterval(tick);
       rec.audio = 1;
       $("#bar").style.width = "100%";
-      $("#msg").textContent = "다 됐습니다. 아래에서 생년월일과 아이콘도 채워주세요.";
-      queueSave();
+      $("#msg").textContent = "다 됐습니다. 고맙습니다!";
+      F.store.mergePrint(me, rec).catch(() => {});
     } catch (e) {
       clearInterval(tick);
       $("#bar").style.width = "70%";
-      $("#msg").textContent = "지문은 만들어졌지만 녹음 보관에 실패했습니다. "
+      $("#msg").textContent = "보관에 실패했습니다. "
         + (e && e.message ? e.message : "") + " 다시 올려보세요.";
     }
   }
@@ -342,87 +245,10 @@
     }
   });
 
-  /* ---------- 내 정보 ----------
-     생년월일은 네 자리 연도, 입교 날짜는 두 자리(00~99) 연도를 씁니다. */
-  function dateFields() {
-    F.mountDate({ y: $("#b-y"), m: $("#b-m"), d: $("#b-d") }, {
-      digits: 4, yearFrom: 2012, yearTo: 1955, value: rec.born,
-      onChange: v => { rec.born = v; paint(); queueSave(); }
-    });
-    F.mountDate({ y: $("#j-y"), m: $("#j-m"), d: $("#j-d") }, {
-      digits: 2, yearFrom: 0, yearTo: 99, value: rec.joined,
-      onChange: v => { rec.joined = v; paint(); queueSave(); }
-    });
-  }
-
-  /* ---------- 아이콘 ---------- */
-  function icons() {
-    $("#icons").innerHTML = F.ICON_KEYS.map(k =>
-      '<button type="button" data-i="' + k + '" aria-pressed="' + (rec.icon === k) + '" title="' + esc(F.ICONS[k].label) + '">'
-      + '<canvas width="72" height="72"></canvas>'
-      + '<span>' + esc(F.ICONS[k].label) + '</span></button>').join("");
-    F.ICON_KEYS.forEach(k => {
-      const c = $('#icons [data-i="' + k + '"] canvas');
-      const g = c.getContext("2d");
-      g.clearRect(0, 0, 72, 72);
-      F.drawIcon(g, k, 36, 36, 46, rec.icon === k ? "#F8D870" : "#8C8674");
-    });
-  }
-  $("#icons").addEventListener("click", e => {
-    const b = e.target.closest("[data-i]");
-    if (!b) return;
-    rec.icon = (rec.icon === b.dataset.i) ? "" : b.dataset.i;
-    icons(); paint(); queueSave();
-  });
-
-  /* ---------- 배경 · 저장 ---------- */
-  function setBg(v) {
-    bg = v;
-    $("#bg-cream").setAttribute("aria-pressed", String(v === "cream"));
-    $("#bg-ink").setAttribute("aria-pressed", String(v === "ink"));
-    paint();
-  }
-  $("#bg-cream").addEventListener("click", () => setBg("cream"));
-  $("#bg-ink").addEventListener("click", () => setBg("ink"));
-  $("#save").addEventListener("click", async () => {
-    const m = F.member(me);
-    const ok = await F.savePNG(canvas, "felicia-" + (m ? m.name : "voiceprint") + ".png");
-    $("#msg").textContent = ok ? "저장했습니다." : "저장하지 못했습니다. 이미지를 길게 눌러 저장해주세요.";
-  });
-
-  /* ---------- 모두 보기 ---------- */
-  let sel = null;
-  function chips() {
-    $("#chips").innerHTML = TEAM.members.map(m => {
-      const has = !!(prints[m.id] && prints[m.id].env);
-      return '<button data-m="' + m.id + '" aria-pressed="' + (m.id === sel) + '"' + (has ? "" : " disabled") + '>'
-        + esc(m.name) + '<span class="part">' + esc(m.part) + '</span></button>';
-    }).join("");
-    if (sel && !(prints[sel] && prints[sel].env)) sel = null;
-    paint2();
-  }
-  function paint2() {
-    if (!sel) {
-      $("#art2").innerHTML = '<p class="empty">이름을 누르면 그 사람의 지문이 나옵니다.</p>';
-      return;
-    }
-    const p = prints[sel];
-    F.drawArt(canvas2, { memberId: sel, a: F.inflate(p), info: p }, "cream");
-    const m = F.member(sel);
-    $("#art2").innerHTML = '<img class="art" src="' + canvas2.toDataURL("image/png")
-      + '" alt="' + esc(m ? m.name : "") + '의 목소리 지문 로고">';
-  }
-  $("#chips").addEventListener("click", e => {
-    const b = e.target.closest("[data-m]");
-    if (!b || b.disabled) return;
-    sel = (sel === b.dataset.m) ? null : b.dataset.m;
-    chips();
-  });
-
   /* ---------- 시작 ---------- */
   F.mountPageNav($("#pagenav"), "voice");
   /* 기기를 함께 쓰다 다른 사람으로 들어가야 하면 주소 뒤에 ?reset 을 붙인다. */
-  if (/[?&]reset/.test(location.search)) F.forgetMe();
+  if (/[?&]reset/.test(location.search)) F.forgetMe();
   const remembered = F.recallMe();
   if (remembered) enter(remembered);
   else input.focus();

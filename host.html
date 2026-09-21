@@ -7,7 +7,7 @@
 <meta name="description" content="FELICIA 1박 2일 첫째 날 밤 진행 화면.">
 <meta name="robots" content="noindex">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300&family=Gowun+Batang:wght@400;700&family=IBM+Plex+Sans+KR:wght@300;400;500&display=swap">
-<link rel="stylesheet" href="assets/app.css?v=31">
+<link rel="stylesheet" href="assets/app.css?v=32">
 </head>
 <body>
 <div class="app">
@@ -32,9 +32,9 @@
       </div>
       <ol class="order">
         <li><a class="order-link" href="voice.html">
-          <span class="idx">01</span><span class="ttl">목소리 지문</span>
+          <span class="idx">01</span><span class="ttl">나의 다짐</span>
           <span class="state" id="st-voice">0/7</span>
-          <span class="sub">단원들이 각자 확인 코드로 들어가 다짐을 녹음하고 지문을 만듭니다. 만든 지문은 결산 개인 슬라이드에 그대로 나옵니다.</span>
+          <span class="sub">단원들이 각자 확인 코드로 들어가 다짐을 녹음합니다. 목소리 지문 로고는 곁길로 빼두었으니 하고 싶은 사람만 만듭니다.</span>
         </a></li>
         <li><button data-go="wrapped">
           <span class="idx">02</span><span class="ttl">결산 상영</span>
@@ -99,7 +99,7 @@
   </main>
 </div>
 
-<script src="assets/app.js?v=31"></script>
+<script src="assets/app.js?v=32"></script>
 <script>
 (() => {
   "use strict";
@@ -245,7 +245,6 @@
     const done = TEAM.members.filter(m => prints[m.id] && prints[m.id].env).length;
     $("#st-voice").textContent = done + "/" + TEAM.members.length;
     $("#st-voice").classList.toggle("on", done > 0);
-    wrapped.setPrints(prints);   // 결산 개인 슬라이드의 음역
     loadCheers();
   })();
 })();

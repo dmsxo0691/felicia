@@ -6,7 +6,7 @@
 <title>우리의 결산 — FELICIA</title>
 <meta name="description" content="884일, 640시간, 그리고 650분. 중창단 FELICIA의 기록.">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300&family=Gowun+Batang:wght@400;700&family=IBM+Plex+Sans+KR:wght@300;400;500&display=swap">
-<link rel="stylesheet" href="assets/app.css?v=31">
+<link rel="stylesheet" href="assets/app.css?v=32">
 </head>
 <body>
 <div class="app">
@@ -32,21 +32,18 @@
   <nav class="pagenav" id="pagenav" aria-label="페이지 이동"></nav>
 </div>
 
-<script src="assets/app.js?v=31"></script>
+<script src="assets/app.js?v=32"></script>
 <script>
 (() => {
   "use strict";
   const F = window.FELICIA;
-  const wrapped = F.mountWrapped({
+  F.mountWrapped({
     stage: F.$("#stage"), dots: F.$("#dots"),
     prev: F.$("#prev"), next: F.$("#next"),
     progress: F.$("#bar"), play: F.$("#play"), auto: true,
     keys: true, active: () => true
   });
   F.mountPageNav(F.$("#pagenav"), "wrapped");
-  (async () => {
-    try { wrapped.setPrints(await F.store.getPrints()); } catch (e) { /* 음역 없이 보여준다 */ }
-  })();
 })();
 </script>
 </body>
