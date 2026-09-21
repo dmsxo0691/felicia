@@ -517,7 +517,7 @@
       } else if (s.lead) {
         html += '<p class="wr-lead">' + esc(s.lead).replace(/\n/g, "<br>") + "</p>";
       }
-      if (s.big) html += '<div class="wr-big"' + (s.num != null ? ' data-num="' + s.num + '" data-dec="' + (s.dec || 0) + '" data-suffix="' + esc(s.suffix || "") + '"' + (s.from != null ? ' data-from="' + s.from + '"' : "") : "") + ">" + esc(s.big) + "</div>";
+      if (s.big) html += '<div class="wr-big">' + esc(s.big) + "</div>";
       if (s.unit) html += '<p class="wr-unit">' + esc(s.unit) + "</p>";
     }
     /* 지문 로고 안에 이름·파트·날짜가 다 들어 있으므로 덧붙일 말이 없다. */
@@ -553,49 +553,11 @@
   }
 
   /* 슬라이드 뷰어 하나를 붙인다. 반환된 객체로 넘기고 되돌린다. */
-  /**
-   * from 에서 to 까지 숫자가 딱 세 번만 바뀐다.
-   *
-   * 예전에는 세어 올렸다. 글자를 갈아끼우는 것뿐이라 아무리 느리게 굴려도
-   * 움직임이 아니라 깜빡임으로 읽혀 정신없었다. 그래서 세는 걸 그만두고
-   * 눈금 세 칸으로 끊었다. 처음 값에서 1/3, 2/3, 그리고 제 값.
-   * 대신 한 칸 넘어갈 때마다 밀려 올라오며 또렷해져서, 숫자가 갈리는 게
-   * 아니라 놓이는 것처럼 보인다.
-   *
-   * setTimeout 으로만 돈다. requestAnimationFrame 은 창이 가려지면 아예
-   * 멈춰서 숫자가 처음 값에 주저앉았다.
-   */
-  const COUNT_TICKS = 3;     // 바뀌는 횟수
-  const COUNT_LEAD = 1150;   // 들어오는 애니메이션이 끝나기를 기다린다
-  const COUNT_GAP = 320;     // 한 칸 사이
-
-  function countUp(el, to, dec, suffix, _ms, from) {
-    const start = from == null ? 0 : from;
-    const fmt = v => (dec ? v.toFixed(dec) : nf(Math.round(v))) + (suffix || "");
-
-    el.textContent = fmt(start);
-
-    for (let i = 1; i <= COUNT_TICKS; i++) {
-      const last = i === COUNT_TICKS;
-      const v = last ? to : start + (to - start) * (i / COUNT_TICKS);
-      setTimeout(() => {
-        if (!el.isConnected) return;
-        el.textContent = fmt(v);
-        /* 같은 애니메이션을 다시 걸려면 한 번 떼었다 붙여야 한다. */
-        el.classList.remove("is-tick", "is-land");
-        void el.offsetWidth;
-        el.classList.add(last ? "is-land" : "is-tick");
-      }, COUNT_LEAD + (i - 1) * COUNT_GAP);
-    }
-  }
-
-  /* 숫자가 다 놓일 때까지 걸리는 시간. 슬라이드 길이를 잴 때 쓴다. */
-  const COUNT_MS = COUNT_LEAD + (COUNT_TICKS - 1) * COUNT_GAP + 500;
 
   /* 한 장을 얼마나 보여줄지. 숫자가 올라가는 시간과 읽을 글자 수를 더한다. */
   function slideMs(s) {
     let d = 4400;
-    if (s.num != null) d += COUNT_MS;      // 숫자 세 칸이 다 놓일 때까지
+    if (s.num != null) d += 900;           // 큰 숫자는 한 박자 머물게
     if (s.member) d += 1700;
     if (s.cover) d += 600;
     const lineText = s.lines
@@ -636,11 +598,6 @@
       if (prevEl) prevEl.disabled = idx === 0;
       if (nextEl) nextEl.textContent = idx === arr.length - 1 ? "처음으로" : "다음";
 
-      const big = stageEl.querySelector(".wr-big[data-num]");
-      if (big && !reduced) {
-        countUp(big, +big.dataset.num, +big.dataset.dec || 0, big.dataset.suffix || "", COUNT_MS,
-          big.dataset.from != null ? +big.dataset.from : null);
-      }
       runBar(slideMs(s));
     }
 
