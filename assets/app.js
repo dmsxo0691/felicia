@@ -433,8 +433,6 @@
      ====================================================================== */
   function slides() {
     const s = stats();
-    /* 비율(1.69%)은 와닿지 않는다. 무대 1분마다 연습 몇 분인지로 바꿔 말한다. */
-    const minPerStageMin = s.stageMin > 0 ? Math.round(s.practiceH * 60 / s.stageMin) : 0;
     const hoursPerSong = TEAM.songs > 0 ? s.practiceH / TEAM.songs : 0;
 
     /* num 을 함께 실어두면 화면에서 0 부터 세어 올릴 수 있다. */
@@ -446,11 +444,15 @@
       { kick: "그런데", lead: "그중 실제로 무대에 선 시간은", big: nf(s.stageMin), num: s.stageMin, unit: "분", foot: "무대 " + TEAM.stages + "번, 한 번에 " + TEAM.smin + "분." },
       { kick: "비율", lead: "연습한 시간 대비 무대에 선 시간", big: s.ratio.toFixed(2) + "%", num: s.ratio, dec: 2, suffix: "%", foot: "나머지 " + (100 - s.ratio).toFixed(2) + "%는 전부 연습이었습니다.", quiet: true },
       { kick: "일곱 명", lead: "일곱 명의 시간을 모두 더하면", big: nf(s.personH), num: s.personH, unit: "시간", foot: "전부 주말과 퇴근 후에 할애한 시간입니다." },
-      { kick: "바꿔 말하면", lead: "무대에서 노래한 1분마다", big: nf(minPerStageMin), num: minPerStageMin, unit: "분씩 연습했습니다", foot: "무대 1분 뒤에 연습 " + nf(minPerStageMin) + "분이 서 있습니다." },
+      { kick: "바꿔 말하면", big: "1", unit: "시간", foot: "1분의 무대를 위해 1시간을 연습했습니다." },
       { kick: "레퍼토리", lead: "함께 부른 곡", big: nf(TEAM.songs), num: TEAM.songs, unit: "곡" },
       { kick: "한 곡", lead: "한 곡을 무대에 올리기까지 평균", big: hoursPerSong.toFixed(1), num: hoursPerSong, dec: 1, unit: "시간", foot: "악보를 처음 펴고 무대에 서기까지 걸린 시간입니다." },
       { kick: "함께 간 곳", lead: "총회와 지파 행사에 함께 지원 간 횟수는 약", big: nf(TEAM.events), num: TEAM.events, unit: "번", foot: "새벽 이슬같은 우리를 하나님께서 지켜보셨습니다." }
     ];
+
+    /* 숫자에서 사람으로 넘어가는 자리. 앞에서 쌓인 것이 여기서 한 번 가라앉고
+       다음 일곱 장으로 이어진다. 선언하지 않고 넘기기만 한다. */
+    out.push({ kick: "그리고", lead: "이 숫자를 채운 건", big: nf(s.total), num: s.total, unit: "명", foot: "한 사람씩 보겠습니다.", quiet: true, hold: 1800 });
 
     TEAM.members.forEach((m, i) => {
       out.push({
