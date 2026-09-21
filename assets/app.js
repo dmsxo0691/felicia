@@ -454,7 +454,7 @@
 
     /* 숫자가 끝나고 사람이 나오기 전의 한 박자. 감상을 적지 않고 질문만 둔다.
        뒤따르는 일곱 장이 그대로 답이 된다. */
-    out.push({ kick: "", lead: nf(s.practiceH) + "시간 동안\n무엇이 변했나요?", quiet: true, cover: true, hold: 2600 });
+    out.push({ kick: "", lines: ["펠리시아", "행복했나요?"], quiet: true, cover: true, hold: 1800 });
 
     TEAM.members.forEach((m, i) => {
       out.push({
@@ -494,7 +494,15 @@
           + '<p class="wr-unit">목소리 지문 준비 중</p>';
       }
     } else {
-      if (s.lead) html += '<p class="wr-lead">' + esc(s.lead).replace(/\n/g, "<br>") + "</p>";
+      /* lines 는 한 줄씩 텀을 두고 들어온다. 한 덩어리로 넣으면 같이 뜬다. */
+      if (s.lines) {
+        s.lines.forEach((t, i) => {
+          html += '<p class="wr-lead wr-line" style="--d:' + (0.25 + i * 1.65).toFixed(2) + 's">'
+            + esc(t) + "</p>";
+        });
+      } else if (s.lead) {
+        html += '<p class="wr-lead">' + esc(s.lead).replace(/\n/g, "<br>") + "</p>";
+      }
       if (s.big) html += '<div class="wr-big"' + (s.num != null ? ' data-num="' + s.num + '" data-dec="' + (s.dec || 0) + '" data-suffix="' + esc(s.suffix || "") + '"' : "") + ">" + esc(s.big) + "</div>";
       if (s.unit) html += '<p class="wr-unit">' + esc(s.unit) + "</p>";
     }
@@ -554,12 +562,14 @@
 
   /* 한 장을 얼마나 보여줄지. 숫자가 올라가는 시간과 읽을 글자 수를 더한다. */
   function slideMs(s) {
-    let d = 5200;
-    if (s.num != null) d += 1200;
-    if (s.member) d += 2000;
-    if (s.cover) d += 700;
-    const text = (s.lead || "") + (s.unit || "") + (s.foot || "");
-    d += Math.min(3600, text.length * 68);
+    let d = 4400;
+    if (s.num != null) d += 1000;
+    if (s.member) d += 1700;
+    if (s.cover) d += 600;
+    const text = (s.lines ? s.lines.join("") : (s.lead || "")) + (s.unit || "") + (s.foot || "");
+    d += Math.min(3000, text.length * 56);
+    /* 줄을 나눠 띄우는 장은 마지막 줄이 다 들어올 때까지 기다려야 한다. */
+    if (s.lines) d += (s.lines.length - 1) * 1650;
     return d + (s.hold || 0);
   }
 

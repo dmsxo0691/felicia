@@ -155,6 +155,9 @@ textarea{resize:vertical;min-height:140px;line-height:1.7}
 
 .wr-anim .wr-kicker{animation:wrRise .75s var(--ease-out) .05s both}
 .wr-anim .wr-lead  {animation:wrBlur .95s var(--ease-out) .20s both}
+/* 줄마다 제 때를 갖는다. 뒤에 두어 지연만 덮어쓴다. */
+.wr-anim .wr-line  {animation-delay:var(--d)}
+.wr-line + .wr-line{margin-top:.18em}
 .wr-anim .wr-big   {animation:wrNum 1.05s var(--ease-out) .34s both}
 .wr-anim .wr-unit  {animation:wrRise .85s var(--ease-out) .62s both}
 .wr-anim .wr-foot  {animation:wrRise .85s var(--ease-out) .88s both}
