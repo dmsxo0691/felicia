@@ -444,7 +444,8 @@
       { kick: "연습", lead: "그동안 모여서 연습한 횟수", big: nf(TEAM.practice), num: TEAM.practice, unit: "번", foot: "한 번도 안 빠진 사람은 아무도 없었습니다." },
       { kick: "시간", lead: "연습에 쓴 시간을 모두 더하면", big: nf(s.practiceH), num: s.practiceH, unit: "시간", foot: "쉬지 않고 이어 붙이면 " + s.practiceDays.toFixed(1) + "일입니다." },
       { kick: "그런데", lead: "그중 실제로 무대에 선 시간은", big: nf(s.stageMin), num: s.stageMin, unit: "분", foot: "무대 " + TEAM.stages + "번, 한 번에 " + TEAM.smin + "분." },
-      { kick: "비율", lead: "연습한 시간 대비 무대에 선 시간", big: s.ratio.toFixed(2) + "%", num: s.ratio, dec: 2, suffix: "%", foot: "나머지 " + (100 - s.ratio).toFixed(2) + "%는 전부 연습이었습니다.", quiet: true },
+      /* 100% 에서 깎여 내려와야 얼마나 작은 몫인지가 눈에 보인다. */
+      { kick: "비율", lead: "연습한 시간 대비 무대에 선 시간", big: s.ratio.toFixed(2) + "%", num: s.ratio, from: 100, dec: 2, suffix: "%", foot: "나머지 " + (100 - s.ratio).toFixed(2) + "%는 전부 연습이었습니다.", quiet: true },
       { kick: "일곱 명", lead: "일곱 명의 시간을 모두 더하면", big: nf(s.personH), num: s.personH, unit: "시간", foot: "전부 주말과 퇴근 후에 할애한 시간입니다." },
       { kick: "바꿔 말하면", big: nf(minPerStageMin), num: minPerStageMin, unit: "분", foot: "1분의 무대를 위해 1시간을 연습했습니다." },
       { kick: "레퍼토리", lead: "함께 부른 곡", big: nf(TEAM.songs), num: TEAM.songs, unit: "곡" },
@@ -454,7 +455,15 @@
 
     /* 숫자가 끝나고 사람이 나오기 전의 한 박자. 감상을 적지 않고 질문만 둔다.
        뒤따르는 일곱 장이 그대로 답이 된다. */
-    out.push({ kick: "", lines: ["펠리시아", "행복했나요?"], quiet: true, cover: true, hold: 1800 });
+    /* 팀 이름이 로고 워드마크처럼 먼저 서고, 한 박자 뒤에 질문이 붙는다.
+       두 줄을 다른 글꼴로 두어 이름과 물음이 섞이지 않게 한다. */
+    out.push({
+      kick: "", quiet: true, cover: true, hold: 2200,
+      lines: [
+        { t: "FELICIA", cls: "wr-mark" },
+        { t: "행복했나요?", cls: "wr-ask", gap: 1.9 }
+      ]
+    });
 
     TEAM.members.forEach((m, i) => {
       out.push({
@@ -483,7 +492,9 @@
 
   /* 슬라이드 하나를 HTML로. 개인 슬라이드에는 그 사람의 지문 로고를 띄운다. */
   function slideHTML(s, prints) {
-    let html = '<p class="wr-kicker">' + esc(s.kick || "") + "</p>";
+    /* 머리말이 없으면 아예 넣지 않는다. 빈 칸이 자리를 차지해 아래 글이
+       가운데에서 밀려 내려간다. */
+    let html = s.kick ? '<p class="wr-kicker">' + esc(s.kick) + "</p>" : "";
     if (s.member) {
       const p = prints && prints[s.memberId];
       if (p && p.env) {
@@ -494,16 +505,19 @@
           + '<p class="wr-unit">목소리 지문 준비 중</p>';
       }
     } else {
-      /* lines 는 한 줄씩 텀을 두고 들어온다. 한 덩어리로 넣으면 같이 뜬다. */
+      /* lines 는 한 줄씩 텀을 두고 들어온다. 한 덩어리로 넣으면 같이 뜬다.
+         줄마다 다른 글꼴을 주려면 {t, cls} 로 적는다. */
       if (s.lines) {
-        s.lines.forEach((t, i) => {
-          html += '<p class="wr-lead wr-line" style="--d:' + (0.25 + i * 1.65).toFixed(2) + 's">'
-            + esc(t) + "</p>";
+        s.lines.forEach((ln, i) => {
+          const t = typeof ln === "string" ? ln : ln.t;
+          const cls = (typeof ln === "string" ? "" : (ln.cls || ""));
+          html += '<p class="wr-lead wr-line ' + cls + '" style="--d:'
+            + (0.25 + i * (ln.gap || 1.65)).toFixed(2) + 's">' + esc(t) + "</p>";
         });
       } else if (s.lead) {
         html += '<p class="wr-lead">' + esc(s.lead).replace(/\n/g, "<br>") + "</p>";
       }
-      if (s.big) html += '<div class="wr-big"' + (s.num != null ? ' data-num="' + s.num + '" data-dec="' + (s.dec || 0) + '" data-suffix="' + esc(s.suffix || "") + '"' : "") + ">" + esc(s.big) + "</div>";
+      if (s.big) html += '<div class="wr-big"' + (s.num != null ? ' data-num="' + s.num + '" data-dec="' + (s.dec || 0) + '" data-suffix="' + esc(s.suffix || "") + '"' + (s.from != null ? ' data-from="' + s.from + '"' : "") : "") + ">" + esc(s.big) + "</div>";
       if (s.unit) html += '<p class="wr-unit">' + esc(s.unit) + "</p>";
     }
     /* 지문 로고 안에 이름·파트·날짜가 다 들어 있으므로 덧붙일 말이 없다. */
@@ -540,23 +554,40 @@
 
   /* 슬라이드 뷰어 하나를 붙인다. 반환된 객체로 넘기고 되돌린다. */
   /* 0 에서 목표까지 세어 올린다. 마지막 프레임은 반드시 정확한 값으로 끝낸다. */
-  function countUp(el, to, dec, suffix, ms) {
+  /**
+   * 숫자가 촤르륵 굴러가다 제자리에 앉는다.
+   * 앞의 짧은 구간은 자리수를 유지한 채 마구 굴리고(숫자판이 도는 느낌),
+   * 그다음 from 에서 to 까지 감속하며 붙는다.
+   */
+  function countUp(el, to, dec, suffix, ms, from) {
     const t0 = performance.now();
+    const start = from == null ? 0 : from;
     const fmt = v => (dec ? v.toFixed(dec) : nf(Math.round(v))) + (suffix || "");
+    const roll = Math.min(620, ms * 0.42);
+    const digits = String(Math.round(Math.abs(to))).length;
+    const cap = Math.pow(10, digits);
     let done = false;
     const finish = () => { if (!done) { done = true; el.textContent = fmt(to); } };
+
     function frame(now) {
       if (done) return;
-      const p = clamp((now - t0) / ms, 0, 1);
-      const e = 1 - Math.pow(1 - p, 4);        // 빠르게 붙었다 천천히 멈춘다
-      el.textContent = fmt(to * e);
-      if (p < 1) requestAnimationFrame(frame);
-      else finish();
+      const t = now - t0;
+      if (t < roll) {
+        const r = Math.random() * cap;
+        el.textContent = fmt(dec ? r / cap * Math.max(to, start) : r);
+      } else {
+        const p = clamp((t - roll) / Math.max(1, ms - roll), 0, 1);
+        const e = 1 - Math.pow(1 - p, 4);      // 빠르게 붙었다 천천히 멈춘다
+        el.textContent = fmt(start + (to - start) * e);
+        if (p >= 1) { finish(); return; }
+      }
+      requestAnimationFrame(frame);
     }
-    el.textContent = fmt(0);
+
+    el.textContent = fmt(start);
     requestAnimationFrame(frame);
-    /* 창이 가려져 있으면 requestAnimationFrame 이 아예 돌지 않아 숫자가 0 에
-       머문다. 시간이 지나면 무조건 제 값으로 앉힌다. */
+    /* 창이 가려져 있으면 requestAnimationFrame 이 아예 돌지 않아 숫자가 처음
+       값에 머문다. 시간이 지나면 무조건 제 값으로 앉힌다. */
     setTimeout(finish, ms + 300);
   }
 
@@ -602,7 +633,8 @@
 
       const big = stageEl.querySelector(".wr-big[data-num]");
       if (big && !reduced) {
-        countUp(big, +big.dataset.num, +big.dataset.dec || 0, big.dataset.suffix || "", 1100);
+        countUp(big, +big.dataset.num, +big.dataset.dec || 0, big.dataset.suffix || "", 1250,
+          big.dataset.from != null ? +big.dataset.from : null);
       }
       runBar(slideMs(s));
     }
