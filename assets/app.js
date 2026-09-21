@@ -461,7 +461,7 @@
       kick: "", quiet: true, cover: true, hold: 2200,
       lines: [
         { t: "FELICIA", cls: "wr-mark" },
-        { t: "행복했나요?", cls: "wr-ask", gap: 1.9 }
+        { t: "행복했나요?", cls: "wr-ask", gap: 1.4 }
       ]
     });
 
@@ -555,33 +555,24 @@
   /* 슬라이드 뷰어 하나를 붙인다. 반환된 객체로 넘기고 되돌린다. */
   /* 0 에서 목표까지 세어 올린다. 마지막 프레임은 반드시 정확한 값으로 끝낸다. */
   /**
-   * 숫자가 촤르륵 굴러가다 제자리에 앉는다.
-   * 앞의 짧은 구간은 자리수를 유지한 채 마구 굴리고(숫자판이 도는 느낌),
-   * 그다음 from 에서 to 까지 감속하며 붙는다.
+   * from 에서 to 까지 천천히 굴러가 제자리에 앉는다.
+   * 무작위로 튀는 구간을 뒀더니 산만해서 뺐다. 고르게 지나가다 끝에서만
+   * 느려지는 편이 눈이 따라가기 좋다.
    */
   function countUp(el, to, dec, suffix, ms, from) {
     const t0 = performance.now();
     const start = from == null ? 0 : from;
     const fmt = v => (dec ? v.toFixed(dec) : nf(Math.round(v))) + (suffix || "");
-    const roll = Math.min(620, ms * 0.42);
-    const digits = String(Math.round(Math.abs(to))).length;
-    const cap = Math.pow(10, digits);
     let done = false;
     const finish = () => { if (!done) { done = true; el.textContent = fmt(to); } };
 
     function frame(now) {
       if (done) return;
-      const t = now - t0;
-      if (t < roll) {
-        const r = Math.random() * cap;
-        el.textContent = fmt(dec ? r / cap * Math.max(to, start) : r);
-      } else {
-        const p = clamp((t - roll) / Math.max(1, ms - roll), 0, 1);
-        const e = 1 - Math.pow(1 - p, 4);      // 빠르게 붙었다 천천히 멈춘다
-        el.textContent = fmt(start + (to - start) * e);
-        if (p >= 1) { finish(); return; }
-      }
-      requestAnimationFrame(frame);
+      const p = clamp((now - t0) / ms, 0, 1);
+      const e = 1 - Math.pow(1 - p, 3);        // 끝에서만 부드럽게 멈춘다
+      el.textContent = fmt(start + (to - start) * e);
+      if (p < 1) requestAnimationFrame(frame);
+      else finish();
     }
 
     el.textContent = fmt(start);
@@ -594,13 +585,17 @@
   /* 한 장을 얼마나 보여줄지. 숫자가 올라가는 시간과 읽을 글자 수를 더한다. */
   function slideMs(s) {
     let d = 4400;
-    if (s.num != null) d += 1000;
+    if (s.num != null) d += 1700;          // 숫자가 다 굴러갈 때까지
     if (s.member) d += 1700;
     if (s.cover) d += 600;
-    const text = (s.lines ? s.lines.join("") : (s.lead || "")) + (s.unit || "") + (s.foot || "");
-    d += Math.min(3000, text.length * 56);
+    const lineText = s.lines
+      ? s.lines.map(l => (typeof l === "string" ? l : l.t)).join("")
+      : (s.lead || "");
+    d += Math.min(3000, (lineText + (s.unit || "") + (s.foot || "")).length * 56);
     /* 줄을 나눠 띄우는 장은 마지막 줄이 다 들어올 때까지 기다려야 한다. */
-    if (s.lines) d += (s.lines.length - 1) * 1650;
+    if (s.lines) {
+      d += s.lines.slice(1).reduce((a, l) => a + (typeof l === "string" ? 1.65 : (l.gap || 1.65)) * 1000, 0);
+    }
     return d + (s.hold || 0);
   }
 
@@ -633,7 +628,7 @@
 
       const big = stageEl.querySelector(".wr-big[data-num]");
       if (big && !reduced) {
-        countUp(big, +big.dataset.num, +big.dataset.dec || 0, big.dataset.suffix || "", 1250,
+        countUp(big, +big.dataset.num, +big.dataset.dec || 0, big.dataset.suffix || "", 2100,
           big.dataset.from != null ? +big.dataset.from : null);
       }
       runBar(slideMs(s));
