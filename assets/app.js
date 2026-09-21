@@ -452,9 +452,9 @@
       { kick: "함께 간 곳", lead: "총회와 지파 행사에 함께 지원 간 횟수는 약", big: nf(TEAM.events), num: TEAM.events, unit: "번", foot: "새벽 이슬같은 우리를 하나님께서 지켜보셨습니다." }
     ];
 
-    /* 숫자에서 사람으로 넘어가는 자리. 앞에서 쌓인 것이 여기서 한 번 가라앉고
-       다음 일곱 장으로 이어진다. 선언하지 않고 넘기기만 한다. */
-    out.push({ kick: "그리고", lead: "이 숫자를 채운 건", big: nf(s.total), num: s.total, unit: "명", foot: "한 사람씩 보겠습니다.", quiet: true, hold: 1800 });
+    /* 숫자가 끝나고 사람이 나오기 전의 한 박자. 감상을 적지 않고 질문만 둔다.
+       뒤따르는 일곱 장이 그대로 답이 된다. */
+    out.push({ kick: "", lead: nf(s.practiceH) + "시간 동안\n무엇이 변했나요?", quiet: true, cover: true, hold: 2600 });
 
     TEAM.members.forEach((m, i) => {
       out.push({
@@ -467,8 +467,6 @@
     /* 닫는 장은 말을 얹지 않는다. 표지와 같은 모습으로 날짜만 남긴다. */
     out.push({ kick: "Felicia", lead: TEAM.trip.replace(/-/g, ". "), quiet: true, cover: true, hold: 3000 });
 
-    /* 맨 끝은 질문. 상영이 여기서 멈추므로 이야기하는 동안 화면에 남는다. */
-    out.push({ kick: "", lead: nf(s.practiceH) + "시간 중에\n어떤 하루가 먼저 떠오르나요?", quiet: true, cover: true });
     return out;
   }
 
