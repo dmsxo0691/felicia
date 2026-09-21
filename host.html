@@ -7,7 +7,7 @@
 <meta name="description" content="FELICIA 1박 2일 첫째 날 밤 진행 화면.">
 <meta name="robots" content="noindex">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300&family=Gowun+Batang:wght@400;700&family=IBM+Plex+Sans+KR:wght@300;400;500&display=swap">
-<link rel="stylesheet" href="assets/app.css?v=17">
+<link rel="stylesheet" href="assets/app.css?v=19">
 </head>
 <body>
 <div class="app">
@@ -38,8 +38,8 @@
         </a></li>
         <li><button data-go="wrapped">
           <span class="idx">02</span><span class="ttl">결산 상영</span>
-          <span class="state on">← → 키</span>
-          <span class="sub">저녁 식사 후. 18장을 ← → 키로 넘깁니다.</span>
+          <span class="state on">자동 재생</span>
+          <span class="sub">저녁 식사 후. 18장이 저절로 넘어갑니다. 스페이스바로 멈추고 이어볼 수 있습니다.</span>
         </button></li>
         <li><button data-go="cheers">
           <span class="idx">03</span><span class="ttl">응원 메시지 확인</span>
@@ -55,11 +55,16 @@
 
     <!-- 결산 -->
     <section id="view-wrapped" hidden style="flex:1;display:flex;flex-direction:column">
-      <div class="wr wrap" id="wr-stage" style="padding-block:clamp(34px,9vh,96px);height:min(620px,72vh)"></div>
-      <div class="wr-nav wrap" style="padding-block:0 28px">
+      <div class="wr-progress wrap" id="wr-bar" style="max-width:960px"><i></i></div>
+      <div class="wr wrap" id="wr-stage" style="padding-block:clamp(28px,7vh,80px);height:min(600px,70vh)"></div>
+      <div class="wr-nav wrap" style="padding-block:0 12px">
         <button class="btn ghost" id="wr-prev">이전</button>
         <div class="wr-dots" id="wr-dots"></div>
         <button class="btn" id="wr-next">다음</button>
+      </div>
+      <div class="row wrap" style="justify-content:center;padding-block:0 28px">
+        <button class="btn solid" id="wr-play">일시정지</button>
+        <span class="tiny">스페이스바로 멈추고 이어보기 · ← → 로 직접 넘기기</span>
       </div>
     </section>
 
@@ -94,7 +99,7 @@
   </main>
 </div>
 
-<script src="assets/app.js?v=17"></script>
+<script src="assets/app.js?v=19"></script>
 <script>
 (() => {
   "use strict";
@@ -127,6 +132,7 @@
   const wrapped = F.mountWrapped({
     stage: $("#wr-stage"), dots: $("#wr-dots"),
     prev: $("#wr-prev"), next: $("#wr-next"),
+    progress: $("#wr-bar"), play: $("#wr-play"), auto: true,
     keys: true, active: () => view === "wrapped"
   });
   $("#wr-stage").classList.add("wrap");

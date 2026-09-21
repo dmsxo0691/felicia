@@ -433,16 +433,17 @@
      ====================================================================== */
   function slides() {
     const s = stats();
+    /* num 을 함께 실어두면 화면에서 0 부터 세어 올릴 수 있다. */
     const out = [
       { kick: "Felicia", lead: "우리의 결산", quiet: true, cover: true },
-      { kick: "처음", lead: "우리는 " + s.foundedLabel + "에 처음 만났습니다.", big: nf(s.days), unit: "일 전", foot: "약 " + s.years.toFixed(1) + "년입니다." },
-      { kick: "연습", lead: "그동안 모여서 연습한 횟수", big: nf(TEAM.practice), unit: "번", foot: "한 번도 안 빠진 사람은 아무도 없었습니다." },
-      { kick: "시간", lead: "연습에 쓴 시간을 모두 더하면", big: nf(s.practiceH), unit: "시간", foot: "쉬지 않고 이어 붙이면 " + s.practiceDays.toFixed(1) + "일입니다." },
-      { kick: "그런데", lead: "그중 실제로 무대에 선 시간은", big: nf(s.stageMin), unit: "분", foot: "무대 " + TEAM.stages + "번, 한 번에 " + TEAM.smin + "분." },
-      { kick: "비율", lead: "연습한 시간 대비 무대에 선 시간", big: s.ratio.toFixed(2) + "%", foot: "나머지 " + (100 - s.ratio).toFixed(2) + "%는 전부 연습이었습니다.", quiet: true },
-      { kick: "일곱 명", lead: "일곱 명의 시간을 모두 더하면", big: nf(s.personH), unit: "시간", foot: "전부 주말과 퇴근 후에 할애한 시간입니다." },
-      { kick: "레퍼토리", lead: "함께 부른 곡", big: nf(TEAM.songs), unit: "곡" },
-      { kick: "함께 간 곳", lead: "총회와 지파 행사에 함께 지원 간 횟수는 약", big: nf(TEAM.events), unit: "번", foot: "새벽 이슬같은 우리를 하나님께서 지켜보셨습니다." }
+      { kick: "처음", lead: "우리는 " + s.foundedLabel + "에 처음 만났습니다.", big: nf(s.days), num: s.days, unit: "일 전", foot: "약 " + s.years.toFixed(1) + "년입니다." },
+      { kick: "연습", lead: "그동안 모여서 연습한 횟수", big: nf(TEAM.practice), num: TEAM.practice, unit: "번", foot: "한 번도 안 빠진 사람은 아무도 없었습니다." },
+      { kick: "시간", lead: "연습에 쓴 시간을 모두 더하면", big: nf(s.practiceH), num: s.practiceH, unit: "시간", foot: "쉬지 않고 이어 붙이면 " + s.practiceDays.toFixed(1) + "일입니다." },
+      { kick: "그런데", lead: "그중 실제로 무대에 선 시간은", big: nf(s.stageMin), num: s.stageMin, unit: "분", foot: "무대 " + TEAM.stages + "번, 한 번에 " + TEAM.smin + "분." },
+      { kick: "비율", lead: "연습한 시간 대비 무대에 선 시간", big: s.ratio.toFixed(2) + "%", num: s.ratio, dec: 2, suffix: "%", foot: "나머지 " + (100 - s.ratio).toFixed(2) + "%는 전부 연습이었습니다.", quiet: true },
+      { kick: "일곱 명", lead: "일곱 명의 시간을 모두 더하면", big: nf(s.personH), num: s.personH, unit: "시간", foot: "전부 주말과 퇴근 후에 할애한 시간입니다." },
+      { kick: "레퍼토리", lead: "함께 부른 곡", big: nf(TEAM.songs), num: TEAM.songs, unit: "곡" },
+      { kick: "함께 간 곳", lead: "총회와 지파 행사에 함께 지원 간 횟수는 약", big: nf(TEAM.events), num: TEAM.events, unit: "번", foot: "새벽 이슬같은 우리를 하나님께서 지켜보셨습니다." }
     ];
 
     TEAM.members.forEach((m, i) => {
@@ -453,7 +454,7 @@
       });
     });
 
-    out.push({ kick: "마지막", lead: "무대에 선 " + nf(s.stageMin) + "분이 아니라,", big: nf(s.practiceH), unit: "시간 — 우리 함께 공유한 시간." });
+    out.push({ kick: "마지막", lead: "무대에 선 " + nf(s.stageMin) + "분이 아니라,", big: nf(s.practiceH), num: s.practiceH, unit: "시간 — 우리 함께 공유한 시간.", hold: 2200 });
     out.push({ kick: "", lead: "그게 우리가 한 일의 전부입니다.\n그리고 오늘 밤도, 그중 하나입니다.", quiet: true });
     return out;
   }
@@ -483,7 +484,7 @@
       }
     } else {
       if (s.lead) html += '<p class="wr-lead">' + esc(s.lead).replace(/\n/g, "<br>") + "</p>";
-      if (s.big) html += '<div class="wr-big">' + esc(s.big) + "</div>";
+      if (s.big) html += '<div class="wr-big"' + (s.num != null ? ' data-num="' + s.num + '" data-dec="' + (s.dec || 0) + '" data-suffix="' + esc(s.suffix || "") + '"' : "") + ">" + esc(s.big) + "</div>";
       if (s.unit) html += '<p class="wr-unit">' + esc(s.unit) + "</p>";
     }
     /* 지문 로고 안에 이름·파트·날짜가 다 들어 있으므로 덧붙일 말이 없다. */
@@ -519,35 +520,149 @@
   }
 
   /* 슬라이드 뷰어 하나를 붙인다. 반환된 객체로 넘기고 되돌린다. */
+  /* 0 에서 목표까지 세어 올린다. 마지막 프레임은 반드시 정확한 값으로 끝낸다. */
+  function countUp(el, to, dec, suffix, ms) {
+    const t0 = performance.now();
+    const fmt = v => (dec ? v.toFixed(dec) : nf(Math.round(v))) + (suffix || "");
+    let done = false;
+    const finish = () => { if (!done) { done = true; el.textContent = fmt(to); } };
+    function frame(now) {
+      if (done) return;
+      const p = clamp((now - t0) / ms, 0, 1);
+      const e = 1 - Math.pow(1 - p, 4);        // 빠르게 붙었다 천천히 멈춘다
+      el.textContent = fmt(to * e);
+      if (p < 1) requestAnimationFrame(frame);
+      else finish();
+    }
+    el.textContent = fmt(0);
+    requestAnimationFrame(frame);
+    /* 창이 가려져 있으면 requestAnimationFrame 이 아예 돌지 않아 숫자가 0 에
+       머문다. 시간이 지나면 무조건 제 값으로 앉힌다. */
+    setTimeout(finish, ms + 300);
+  }
+
+  /* 한 장을 얼마나 보여줄지. 숫자가 올라가는 시간과 읽을 글자 수를 더한다. */
+  function slideMs(s) {
+    let d = 4200;
+    if (s.num != null) d += 1100;
+    if (s.member) d += 1600;
+    if (s.cover) d += 600;
+    const text = (s.lead || "") + (s.unit || "") + (s.foot || "");
+    d += Math.min(3200, text.length * 58);
+    return d + (s.hold || 0);
+  }
+
+  /**
+   * 결산 뷰어. 영상처럼 저절로 넘어가고, 요소가 차례로 들어온다.
+   *   stage/dots/prev/next  화면 요소
+   *   progress              남은 시간 막대 (선택)
+   *   play                  재생·일시정지 단추 (선택)
+   *   auto                  true 면 켜진 채로 시작
+   */
   function mountWrapped(opts) {
     const stageEl = opts.stage, dotsEl = opts.dots, prevEl = opts.prev, nextEl = opts.next;
-    let idx = 0, arr = slides(), prints = opts.prints || null;
+    const barEl = opts.progress || null, playEl = opts.play || null;
+    const reduced = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-    function paint() {
+    let idx = 0, arr = slides(), prints = opts.prints || null;
+    let playing = !!opts.auto && !reduced;
+    let timer = null, outTimer = null;
+
+    function clearTimers() { clearTimeout(timer); clearTimeout(outTimer); timer = outTimer = null; }
+
+    function render() {
       const s = arr[idx];
-      stageEl.className = "wr" + (s.quiet ? " wr-quiet" : "") + (s.cover ? " wr-cover" : "");
+      stageEl.className = "wr" + (s.quiet ? " wr-quiet" : "") + (s.cover ? " wr-cover" : "")
+        + (reduced ? "" : " wr-anim");
       stageEl.innerHTML = slideHTML(s, prints);
       paintDots(dotsEl, idx, arr.length);
       if (prevEl) prevEl.disabled = idx === 0;
       if (nextEl) nextEl.textContent = idx === arr.length - 1 ? "처음으로" : "다음";
-    }
-    function step(d) { idx = (idx + d + arr.length) % arr.length; paint(); }
 
-    if (prevEl) prevEl.addEventListener("click", () => step(-1));
-    if (nextEl) nextEl.addEventListener("click", () => step(1));
+      const big = stageEl.querySelector(".wr-big[data-num]");
+      if (big && !reduced) {
+        countUp(big, +big.dataset.num, +big.dataset.dec || 0, big.dataset.suffix || "", 1100);
+      }
+      runBar(slideMs(s));
+    }
+
+    /* 남은 시간 막대. 애니메이션을 다시 시작하려면 한 번 지웠다 걸어야 한다. */
+    function runBar(ms) {
+      if (!barEl) return;
+      const fill = barEl.firstElementChild || barEl;
+      fill.style.animation = "none";
+      void fill.offsetWidth;
+      fill.style.animation = playing ? "wrBar " + ms + "ms linear forwards" : "none";
+      fill.style.width = playing ? "" : "0%";
+    }
+
+    /* 나갈 때도 움직여야 장이 툭 끊기지 않는다. */
+    function leaveThen(fn) {
+      const slide = stageEl.querySelector(".wr-slide");
+      if (!slide || reduced) { fn(); return; }
+      slide.classList.add("wr-out");
+      outTimer = setTimeout(fn, 380);
+    }
+
+    function schedule() {
+      clearTimers();
+      if (!playing) return;
+      const ms = slideMs(arr[idx]);
+      timer = setTimeout(() => {
+        if (idx >= arr.length - 1) { setPlaying(false); return; }   // 끝에서 멈춘다
+        leaveThen(() => { idx++; render(); schedule(); });
+      }, Math.max(1200, ms - 380));
+    }
+
+    function go(d) {
+      clearTimers();
+      const next = (idx + d + arr.length) % arr.length;
+      leaveThen(() => { idx = next; render(); schedule(); });
+    }
+
+    function setPlaying(v) {
+      playing = v;
+      if (playEl) {
+        playEl.textContent = v ? "일시정지" : (idx >= arr.length - 1 ? "처음부터" : "재생");
+        playEl.setAttribute("aria-pressed", String(v));
+      }
+      if (v) {
+        if (idx >= arr.length - 1) { idx = 0; render(); }
+        else runBar(slideMs(arr[idx]));
+        schedule();
+      } else {
+        clearTimers();
+        if (barEl) {
+          const fill = barEl.firstElementChild || barEl;
+          const w = fill.getBoundingClientRect().width;
+          fill.style.animation = "none";
+          fill.style.width = Math.round(w) + "px";
+        }
+      }
+    }
+
+    if (prevEl) prevEl.addEventListener("click", () => go(-1));
+    if (nextEl) nextEl.addEventListener("click", () => go(1));
+    if (playEl) playEl.addEventListener("click", () => setPlaying(!playing));
     if (opts.keys) {
       document.addEventListener("keydown", e => {
         if (opts.active && !opts.active()) return;
-        if (e.key === "ArrowRight" || e.key === " ") { e.preventDefault(); step(1); }
-        if (e.key === "ArrowLeft") { e.preventDefault(); step(-1); }
+        if (e.key === "ArrowRight") { e.preventDefault(); go(1); }
+        if (e.key === "ArrowLeft") { e.preventDefault(); go(-1); }
+        if (e.key === " ") { e.preventDefault(); setPlaying(!playing); }
       });
     }
-    paint();
+
+    render();
+    if (playEl) setPlaying(playing);
+    else if (playing) schedule();
+
     return {
-      paint,
-      step,
-      setPrints(p) { prints = p; paint(); },
-      reset() { idx = 0; arr = slides(); paint(); }
+      paint: render,
+      step: go,
+      setPlaying,
+      setPrints(p) { prints = p; render(); schedule(); },
+      reset() { clearTimers(); idx = 0; arr = slides(); render(); schedule(); }
     };
   }
 
