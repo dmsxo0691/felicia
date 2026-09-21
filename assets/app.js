@@ -555,22 +555,33 @@
   /* 슬라이드 뷰어 하나를 붙인다. 반환된 객체로 넘기고 되돌린다. */
   /* 0 에서 목표까지 세어 올린다. 마지막 프레임은 반드시 정확한 값으로 끝낸다. */
   /**
-   * from 에서 to 까지 천천히 굴러가 제자리에 앉는다.
-   * 무작위로 튀는 구간을 뒀더니 산만해서 뺐다. 고르게 지나가다 끝에서만
-   * 느려지는 편이 눈이 따라가기 좋다.
+   * from 에서 to 까지 숫자가 넘어간다.
+   *
+   * 글자를 갈아끼우는 것뿐이라 빠르게 바뀌면 움직임이 아니라 깜빡임으로 보인다.
+   * 두 가지로 다스린다.
+   *  - 느리게 출발해 중간에 빨라지고 끝에서 다시 느려진다 (ease-in-out).
+   *    처음이 제일 빨랐던 예전 곡선은 시작하자마자 숫자가 튀었다.
+   *  - 매 프레임(초당 60번) 바꾸지 않고 STEP 간격으로만 바꾼다. 눈이 한 값씩
+   *    읽을 수 있어야 세는 것처럼 보인다.
    */
+  const COUNT_STEP = 80;
   function countUp(el, to, dec, suffix, ms, from) {
     const t0 = performance.now();
     const start = from == null ? 0 : from;
     const fmt = v => (dec ? v.toFixed(dec) : nf(Math.round(v))) + (suffix || "");
-    let done = false;
+    const ease = p => (p < 0.5 ? 4 * p * p * p : 1 - Math.pow(-2 * p + 2, 3) / 2);
+    let done = false, lastSlot = -1;
     const finish = () => { if (!done) { done = true; el.textContent = fmt(to); } };
 
     function frame(now) {
       if (done) return;
-      const p = clamp((now - t0) / ms, 0, 1);
-      const e = 1 - Math.pow(1 - p, 3);        // 끝에서만 부드럽게 멈춘다
-      el.textContent = fmt(start + (to - start) * e);
+      const t = now - t0;
+      const p = clamp(t / ms, 0, 1);
+      const slot = Math.floor(t / COUNT_STEP);
+      if (slot !== lastSlot) {
+        lastSlot = slot;
+        el.textContent = fmt(start + (to - start) * ease(p));
+      }
       if (p < 1) requestAnimationFrame(frame);
       else finish();
     }
@@ -585,7 +596,7 @@
   /* 한 장을 얼마나 보여줄지. 숫자가 올라가는 시간과 읽을 글자 수를 더한다. */
   function slideMs(s) {
     let d = 4400;
-    if (s.num != null) d += 1700;          // 숫자가 다 굴러갈 때까지
+    if (s.num != null) d += 2000;          // 숫자가 다 넘어갈 때까지
     if (s.member) d += 1700;
     if (s.cover) d += 600;
     const lineText = s.lines
@@ -628,7 +639,7 @@
 
       const big = stageEl.querySelector(".wr-big[data-num]");
       if (big && !reduced) {
-        countUp(big, +big.dataset.num, +big.dataset.dec || 0, big.dataset.suffix || "", 2100,
+        countUp(big, +big.dataset.num, +big.dataset.dec || 0, big.dataset.suffix || "", 2400,
           big.dataset.from != null ? +big.dataset.from : null);
       }
       runBar(slideMs(s));
