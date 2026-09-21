@@ -553,50 +553,49 @@
   }
 
   /* 슬라이드 뷰어 하나를 붙인다. 반환된 객체로 넘기고 되돌린다. */
-  /* 0 에서 목표까지 세어 올린다. 마지막 프레임은 반드시 정확한 값으로 끝낸다. */
   /**
-   * from 에서 to 까지 숫자가 넘어간다.
+   * from 에서 to 까지 숫자가 딱 세 번만 바뀐다.
    *
-   * 글자를 갈아끼우는 것뿐이라 빠르게 바뀌면 움직임이 아니라 깜빡임으로 보인다.
-   * 두 가지로 다스린다.
-   *  - 느리게 출발해 중간에 빨라지고 끝에서 다시 느려진다 (ease-in-out).
-   *    처음이 제일 빨랐던 예전 곡선은 시작하자마자 숫자가 튀었다.
-   *  - 매 프레임(초당 60번) 바꾸지 않고 STEP 간격으로만 바꾼다. 눈이 한 값씩
-   *    읽을 수 있어야 세는 것처럼 보인다.
+   * 예전에는 세어 올렸다. 글자를 갈아끼우는 것뿐이라 아무리 느리게 굴려도
+   * 움직임이 아니라 깜빡임으로 읽혀 정신없었다. 그래서 세는 걸 그만두고
+   * 눈금 세 칸으로 끊었다. 처음 값에서 1/3, 2/3, 그리고 제 값.
+   * 대신 한 칸 넘어갈 때마다 밀려 올라오며 또렷해져서, 숫자가 갈리는 게
+   * 아니라 놓이는 것처럼 보인다.
+   *
+   * setTimeout 으로만 돈다. requestAnimationFrame 은 창이 가려지면 아예
+   * 멈춰서 숫자가 처음 값에 주저앉았다.
    */
-  const COUNT_STEP = 80;
-  function countUp(el, to, dec, suffix, ms, from) {
-    const t0 = performance.now();
+  const COUNT_TICKS = 3;     // 바뀌는 횟수
+  const COUNT_LEAD = 1150;   // 들어오는 애니메이션이 끝나기를 기다린다
+  const COUNT_GAP = 320;     // 한 칸 사이
+
+  function countUp(el, to, dec, suffix, _ms, from) {
     const start = from == null ? 0 : from;
     const fmt = v => (dec ? v.toFixed(dec) : nf(Math.round(v))) + (suffix || "");
-    const ease = p => (p < 0.5 ? 4 * p * p * p : 1 - Math.pow(-2 * p + 2, 3) / 2);
-    let done = false, lastSlot = -1;
-    const finish = () => { if (!done) { done = true; el.textContent = fmt(to); } };
-
-    function frame(now) {
-      if (done) return;
-      const t = now - t0;
-      const p = clamp(t / ms, 0, 1);
-      const slot = Math.floor(t / COUNT_STEP);
-      if (slot !== lastSlot) {
-        lastSlot = slot;
-        el.textContent = fmt(start + (to - start) * ease(p));
-      }
-      if (p < 1) requestAnimationFrame(frame);
-      else finish();
-    }
 
     el.textContent = fmt(start);
-    requestAnimationFrame(frame);
-    /* 창이 가려져 있으면 requestAnimationFrame 이 아예 돌지 않아 숫자가 처음
-       값에 머문다. 시간이 지나면 무조건 제 값으로 앉힌다. */
-    setTimeout(finish, ms + 300);
+
+    for (let i = 1; i <= COUNT_TICKS; i++) {
+      const last = i === COUNT_TICKS;
+      const v = last ? to : start + (to - start) * (i / COUNT_TICKS);
+      setTimeout(() => {
+        if (!el.isConnected) return;
+        el.textContent = fmt(v);
+        /* 같은 애니메이션을 다시 걸려면 한 번 떼었다 붙여야 한다. */
+        el.classList.remove("is-tick", "is-land");
+        void el.offsetWidth;
+        el.classList.add(last ? "is-land" : "is-tick");
+      }, COUNT_LEAD + (i - 1) * COUNT_GAP);
+    }
   }
+
+  /* 숫자가 다 놓일 때까지 걸리는 시간. 슬라이드 길이를 잴 때 쓴다. */
+  const COUNT_MS = COUNT_LEAD + (COUNT_TICKS - 1) * COUNT_GAP + 500;
 
   /* 한 장을 얼마나 보여줄지. 숫자가 올라가는 시간과 읽을 글자 수를 더한다. */
   function slideMs(s) {
     let d = 4400;
-    if (s.num != null) d += 2000;          // 숫자가 다 넘어갈 때까지
+    if (s.num != null) d += COUNT_MS;      // 숫자 세 칸이 다 놓일 때까지
     if (s.member) d += 1700;
     if (s.cover) d += 600;
     const lineText = s.lines
@@ -639,7 +638,7 @@
 
       const big = stageEl.querySelector(".wr-big[data-num]");
       if (big && !reduced) {
-        countUp(big, +big.dataset.num, +big.dataset.dec || 0, big.dataset.suffix || "", 2400,
+        countUp(big, +big.dataset.num, +big.dataset.dec || 0, big.dataset.suffix || "", COUNT_MS,
           big.dataset.from != null ? +big.dataset.from : null);
       }
       runBar(slideMs(s));

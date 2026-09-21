@@ -171,7 +171,7 @@ textarea{resize:vertical;min-height:140px;line-height:1.7}
   font-size:clamp(19px,3.8vw,27px);letter-spacing:0;
   color:var(--cream);line-height:1.4;
 }
-.wr-anim .wr-big   {animation:wrNum 1.05s var(--ease-out) .34s both}
+.wr-anim .wr-big   {animation:wrNum .78s var(--ease-out) .30s both}
 .wr-anim .wr-unit  {animation:wrRise .85s var(--ease-out) .62s both}
 .wr-anim .wr-foot  {animation:wrRise .85s var(--ease-out) .88s both}
 .wr-anim .wr-words {animation:wrRise .85s var(--ease-out) .62s both}
@@ -182,6 +182,13 @@ textarea{resize:vertical;min-height:140px;line-height:1.7}
 @keyframes wrNum{from{opacity:0;transform:translateY(20px) scale(.93);filter:blur(7px)}to{opacity:1;transform:none;filter:blur(0)}}
 @keyframes wrArt{from{opacity:0;transform:scale(.90)}to{opacity:1;transform:scale(1)}}
 @keyframes wrDrift{from{transform:scale(1)}to{transform:scale(1.035)}}
+
+/* 숫자는 세 번만 바뀐다. 한 칸 넘어갈 때마다 밀려 올라오며 또렷해진다.
+   .wr-anim .wr-big 과 특정도가 같으므로 반드시 뒤에 와야 이긴다. */
+.wr-big.is-tick{animation:wrTick .3s var(--ease-out) both}
+.wr-big.is-land{animation:wrLand .52s var(--ease-out) both}
+@keyframes wrTick{from{opacity:.4;transform:translateY(.18em);filter:blur(5px)}to{opacity:1;transform:none;filter:blur(0)}}
+@keyframes wrLand{from{opacity:.45;transform:translateY(.16em) scale(.97);filter:blur(6px)}to{opacity:1;transform:none;filter:blur(0)}}
 
 /* 나가는 장 */
 .wr-slide.wr-out{animation:wrOut .38s cubic-bezier(.5,0,.75,0) both}
@@ -197,7 +204,8 @@ textarea{resize:vertical;min-height:140px;line-height:1.7}
   .fadein{animation:none}
   .wr-dots i,.wr-dots .track{transition:none}
   .wr-anim .wr-kicker,.wr-anim .wr-lead,.wr-anim .wr-big,.wr-anim .wr-unit,
-  .wr-anim .wr-foot,.wr-anim .wr-words,.wr-anim .wr-art,.wr-slide.wr-out{animation:none}
+  .wr-anim .wr-foot,.wr-anim .wr-words,.wr-anim .wr-art,.wr-slide.wr-out,
+  .wr-big.is-tick,.wr-big.is-land{animation:none}
 }
 
 /* ---------- 통계 리스트 ---------- */
