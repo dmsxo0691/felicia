@@ -4,43 +4,31 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>FELICIA</title>
-<meta name="description" content="중창단 FELICIA — 목소리 지문, 우리의 결산, 우리에게 온 응원.">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300&family=Gowun+Batang:wght@400;700&family=IBM+Plex+Sans+KR:wght@300;400;500&display=swap">
-<link rel="stylesheet" href="assets/app.css?v=36">
+<meta name="robots" content="noindex">
+<link rel="canonical" href="wrapped.html">
+<!-- 표지 대신 결산부터 시작합니다.
+     표지에 메뉴를 두면 결산을 보기도 전에 응원으로 건너뛸 수 있었습니다.
+     결산 → 다짐 → 응원은 마지막 장에서 차례로 이어집니다.
+     replace 를 쓰는 건 뒤로 가기가 여기로 돌아와 다시 튕기지 않게 하려는 겁니다. -->
+<script>location.replace("wrapped.html" + location.search + location.hash);</script>
+<!-- meta refresh 는 일부러 쓰지 않습니다. 그건 방문 기록을 하나 남겨서
+     결산에서 뒤로 가기를 누르면 여기로 왔다가 다시 튕겨 나가게 됩니다.
+     아래 링크가 자바스크립트가 막힌 경우의 길입니다. -->
+<style>
+  html,body{height:100%}
+  body{
+    margin:0;background:#14120D;color:#F6F1E3;
+    font-family:"IBM Plex Sans KR",'Malgun Gothic','Apple SD Gothic Neo',sans-serif;
+    font-weight:300;display:flex;align-items:center;justify-content:center;text-align:center;
+  }
+  p{font-size:11px;letter-spacing:.3em;text-transform:uppercase;color:#AE8823;margin:0 0 14px}
+  a{color:#F8D870;font-size:14px}
+</style>
 </head>
 <body>
-<div class="app">
-
-  <div class="cover">
-    <div class="mark" id="mark"></div>
+  <div>
+    <p>FELICIA</p>
+    <a href="wrapped.html">우리의 결산으로 →</a>
   </div>
-
-  <section class="sec" style="border-top:0;padding-top:0">
-    <div class="sec-in">
-      <ol class="entries">
-        <li><a href="wrapped.html">
-          <span class="idx">01</span><span class="ttl">우리의 결산</span><span class="arrow">→</span>
-          <span class="sub">884일, 640시간, 그리고 650분.</span>
-        </a></li>
-        <li><a href="mycheers.html">
-          <span class="idx">02</span><span class="ttl">나에게 온 응원</span><span class="arrow">→</span>
-          <span class="sub">확인 코드를 넣으면 내게 온 응원만 보입니다.</span>
-        </a></li>
-      </ol>
-      <div class="row" style="margin-top:28px;justify-content:center">
-        <a class="btn ghost" href="cheer.html" style="font-size:12px">응원 메시지 남기기</a>
-      </div>
-    </div>
-  </section>
-
-  <div class="foot">
-    <p class="tiny" style="margin:0">FELICIA</p>
-  </div>
-</div>
-
-<script src="assets/app.js?v=36"></script>
-<script>
-  FELICIA.logo.ready.then(() => FELICIA.coverMark(FELICIA.$("#mark")));
-</script>
 </body>
 </html>
