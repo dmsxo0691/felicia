@@ -166,8 +166,13 @@ textarea{resize:vertical;min-height:140px;line-height:1.7}
   font-size:clamp(21px,5vw,34px);letter-spacing:.52em;text-transform:uppercase;
   color:var(--gold);padding-left:.52em;line-height:1.2;
 }
-/* 마지막 장의 단추. 재생이 여기서 멈추므로 화면에 그대로 남는다. */
-.wr-cta{display:inline-flex;margin-top:26px;text-decoration:none;padding:13px 28px}
+/* 마지막 장의 단추. 이 한 덩이가 장의 내용 전부라 크게 둔다.
+   재생이 여기서 멈추므로 화면에 그대로 남는다. */
+.wr-cta{
+  display:inline-flex;margin-top:8px;text-decoration:none;
+  padding:18px 40px;font-family:var(--serif);font-size:clamp(18px,3.4vw,25px);
+  letter-spacing:.02em;border-radius:2px;
+}
 .wr-cover .wr-ask{
   font-family:var(--serif);font-weight:400;
   font-size:clamp(19px,3.8vw,27px);letter-spacing:0;
@@ -176,7 +181,7 @@ textarea{resize:vertical;min-height:140px;line-height:1.7}
 .wr-anim .wr-big   {animation:wrNum 1.05s var(--ease-out) .34s both}
 .wr-anim .wr-unit  {animation:wrRise .85s var(--ease-out) .62s both}
 .wr-anim .wr-foot  {animation:wrRise .85s var(--ease-out) .88s both}
-.wr-anim .wr-cta   {animation:wrRise .9s var(--ease-out) 1.7s both}
+.wr-anim .wr-cta   {animation:wrBlur 1s var(--ease-out) .5s both}
 .wr-anim .wr-words {animation:wrRise .85s var(--ease-out) .62s both}
 .wr-anim .wr-art   {animation:wrArt 1.5s var(--ease-out) .18s both, wrDrift 11s ease-in-out 1.7s infinite alternate}
 

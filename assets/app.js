@@ -469,9 +469,7 @@
        단추가 화면에 그대로 남는다 — 각자 폰으로 눌러 다짐을 남기러 간다. */
     out.push({
       kick: "Felicia", quiet: true, cover: true, hold: 2600,
-      lines: [{ t: "앞으로의 다짐", cls: "wr-ask" }],
-      foot: "지나온 시간을 봤으니, 이제 앞을 남길 차례입니다.",
-      cta: { text: "다짐 남기러 가기", href: "voice.html" }
+      cta: { text: "앞으로의 다짐", href: "voice.html" }
     });
 
     return out;
