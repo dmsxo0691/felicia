@@ -6,7 +6,7 @@
 <title>우리의 결산 — FELICIA</title>
 <meta name="description" content="884일, 640시간, 그리고 650분. 중창단 FELICIA의 기록.">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300&family=Gowun+Batang:wght@400;700&family=IBM+Plex+Sans+KR:wght@300;400;500&display=swap">
-<link rel="stylesheet" href="assets/app.css?v=34">
+<link rel="stylesheet" href="assets/app.css?v=35">
 </head>
 <body>
 <div class="app">
@@ -32,18 +32,26 @@
   <nav class="pagenav" id="pagenav" aria-label="페이지 이동"></nav>
 </div>
 
-<script src="assets/app.js?v=34"></script>
+<script src="assets/app.js?v=35"></script>
 <script>
 (() => {
   "use strict";
   const F = window.FELICIA;
+  const nav = F.$("#pagenav");
+  /* 결산을 다 보기 전에는 내보내지 않는다. 중간에 눈에 띄면 끝을 보기도
+     전에 응원으로 건너뛰게 된다. 마지막 장에 닿으면 그때 떠오른다. */
+  nav.hidden = true;
+
   F.mountWrapped({
     stage: F.$("#stage"), dots: F.$("#dots"),
     prev: F.$("#prev"), next: F.$("#next"),
     progress: F.$("#bar"), play: F.$("#play"), auto: true,
-    keys: true, active: () => true
+    keys: true, active: () => true,
+    onSlide(i, n) {
+      if (i === n - 1 && nav.hidden) { nav.hidden = false; nav.classList.add("fadein"); }
+    }
   });
-  F.mountPageNav(F.$("#pagenav"), "wrapped");
+  F.mountPageNav(nav, "wrapped");
 })();
 </script>
 </body>

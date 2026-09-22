@@ -573,6 +573,7 @@
       paintDots(dotsEl, idx, arr.length);
       if (prevEl) prevEl.disabled = idx === 0;
       if (nextEl) nextEl.textContent = idx === arr.length - 1 ? "처음으로" : "다음";
+      if (opts.onSlide) opts.onSlide(idx, arr.length);
 
       runBar(slideMs(s));
     }
@@ -765,7 +766,9 @@
     const i = PAGES.findIndex(p => p.key === key);
     const prev = PAGES[(i - 1 + PAGES.length) % PAGES.length];
     const next = PAGES[(i + 1) % PAGES.length];
-    /* 남은 장이 하나뿐이면 앞뒤가 같은 곳을 가리킨다. 그때는 한쪽만 둔다. */
+    /* 남은 장이 하나뿐이면 앞뒤가 같은 곳을 가리킨다. 그때는 한쪽만 두고,
+       반쪽 칸에 끼워 넣지 않도록 표시를 달아 한 칸으로 펴서 보여준다. */
+    el.classList.toggle("pn-solo", prev === next);
     el.innerHTML =
       (prev === next ? "" :
         '<a class="pn-side pn-prev" href="' + prev.href + '">'
