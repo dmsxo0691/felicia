@@ -169,8 +169,8 @@ textarea{resize:vertical;min-height:140px;line-height:1.7}
 /* 마지막 장의 단추. 이 한 덩이가 장의 내용 전부라 크게 둔다.
    재생이 여기서 멈추므로 화면에 그대로 남는다. */
 .wr-cta{
-  display:inline-flex;margin-top:8px;text-decoration:none;
-  padding:18px 40px;font-family:var(--serif);font-size:clamp(18px,3.4vw,25px);
+  display:inline-flex;margin-top:10px;text-decoration:none;
+  padding:13px 28px;font-family:var(--serif);font-size:clamp(15px,2.3vw,18px);
   letter-spacing:.02em;border-radius:2px;
 }
 .wr-cover .wr-ask{
