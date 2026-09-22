@@ -7,7 +7,7 @@
 <meta name="description" content="FELICIA 1박 2일 첫째 날 밤 진행 화면.">
 <meta name="robots" content="noindex">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300&family=Gowun+Batang:wght@400;700&family=IBM+Plex+Sans+KR:wght@300;400;500&display=swap">
-<link rel="stylesheet" href="assets/app.css?v=32">
+<link rel="stylesheet" href="assets/app.css?v=33">
 </head>
 <body>
 <div class="app">
@@ -31,16 +31,16 @@
         <p class="lede" id="home-lede"></p>
       </div>
       <ol class="order">
-        <li><a class="order-link" href="voice.html">
-          <span class="idx">01</span><span class="ttl">나의 다짐</span>
-          <span class="state" id="st-voice">0/7</span>
-          <span class="sub">단원들이 각자 확인 코드로 들어가 다짐을 녹음합니다. 목소리 지문 로고는 곁길로 빼두었으니 하고 싶은 사람만 만듭니다.</span>
-        </a></li>
         <li><button data-go="wrapped">
-          <span class="idx">02</span><span class="ttl">결산 상영</span>
+          <span class="idx">01</span><span class="ttl">결산 상영</span>
           <span class="state on">자동 재생</span>
-          <span class="sub">저녁 식사 후. 18장이 저절로 넘어갑니다. 스페이스바로 멈추고 이어볼 수 있습니다.</span>
+          <span class="sub">저녁 식사 후. 13장이 저절로 넘어갑니다. 스페이스바로 멈추고 이어볼 수 있습니다.</span>
         </button></li>
+        <li><a class="order-link" href="voice.html">
+          <span class="idx">02</span><span class="ttl">나의 다짐</span>
+          <span class="state" id="st-voice">0/7</span>
+          <span class="sub">결산 마지막 장의 단추를 누르면 여기로 옵니다. 각자 폰으로 들어가 다짐을 녹음합니다. 목소리 지문 로고는 곁길이라 하고 싶은 사람만 만듭니다.</span>
+        </a></li>
         <li><button data-go="cheers">
           <span class="idx">03</span><span class="ttl">응원 메시지 확인</span>
           <span class="state" id="st-cheers">0개</span>
@@ -72,7 +72,7 @@
     <!-- 다짐 녹음 -->
     <section id="view-voice" class="wrap" hidden>
       <div class="head">
-        <p class="eyebrow">01 — 다짐 녹음</p>
+        <p class="eyebrow">02 — 다짐 녹음</p>
         <h1>단원들의 다짐</h1>
         <p class="lede">단원들이 올린 녹음입니다. 여기서 듣고 내려받을 수 있습니다. 파일은 저장소 계정의 드라이브 <b>FELICIA 녹음</b> 폴더에 보관됩니다.</p>
         <div class="row">
@@ -99,7 +99,7 @@
   </main>
 </div>
 
-<script src="assets/app.js?v=32"></script>
+<script src="assets/app.js?v=33"></script>
 <script>
 (() => {
   "use strict";

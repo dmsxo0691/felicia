@@ -465,8 +465,14 @@
       ]
     });
 
-    /* 닫는 장은 말을 얹지 않는다. 표지와 같은 모습으로 날짜만 남긴다. */
-    out.push({ kick: "Felicia", lead: TEAM.trip.replace(/-/g, ". "), quiet: true, cover: true, hold: 3000 });
+    /* 닫는 장. 돌아봤으니 이제 앞을 본다. 마지막 장에서는 재생이 멈추므로
+       단추가 화면에 그대로 남는다 — 각자 폰으로 눌러 다짐을 남기러 간다. */
+    out.push({
+      kick: "Felicia", quiet: true, cover: true, hold: 2600,
+      lines: [{ t: "앞으로의 다짐", cls: "wr-ask" }],
+      foot: "지나온 시간을 봤으니, 이제 앞을 남길 차례입니다.",
+      cta: { text: "다짐 남기러 가기", href: "voice.html" }
+    });
 
     return out;
   }
@@ -476,24 +482,25 @@
     /* 머리말이 없으면 아예 넣지 않는다. 빈 칸이 자리를 차지해 아래 글이
        가운데에서 밀려 내려간다. */
     let html = s.kick ? '<p class="wr-kicker">' + esc(s.kick) + "</p>" : "";
-    {
-      /* lines 는 한 줄씩 텀을 두고 들어온다. 한 덩어리로 넣으면 같이 뜬다.
-         줄마다 다른 글꼴을 주려면 {t, cls} 로 적는다. */
-      if (s.lines) {
-        s.lines.forEach((ln, i) => {
-          const t = typeof ln === "string" ? ln : ln.t;
-          const cls = (typeof ln === "string" ? "" : (ln.cls || ""));
-          html += '<p class="wr-lead wr-line ' + cls + '" style="--d:'
-            + (0.25 + i * (ln.gap || 1.65)).toFixed(2) + 's">' + esc(t) + "</p>";
-        });
-      } else if (s.lead) {
-        html += '<p class="wr-lead">' + esc(s.lead).replace(/\n/g, "<br>") + "</p>";
-      }
-      if (s.big) html += '<div class="wr-big">' + esc(s.big) + "</div>";
-      if (s.unit) html += '<p class="wr-unit">' + esc(s.unit) + "</p>";
+
+    /* lines 는 한 줄씩 텀을 두고 들어온다. 한 덩어리로 넣으면 같이 뜬다.
+       줄마다 다른 글꼴을 주려면 {t, cls} 로 적는다. */
+    if (s.lines) {
+      s.lines.forEach((ln, i) => {
+        const t = typeof ln === "string" ? ln : ln.t;
+        const cls = (typeof ln === "string" ? "" : (ln.cls || ""));
+        html += '<p class="wr-lead wr-line ' + cls + '" style="--d:'
+          + (0.25 + i * (ln.gap || 1.65)).toFixed(2) + 's">' + esc(t) + "</p>";
+      });
+    } else if (s.lead) {
+      html += '<p class="wr-lead">' + esc(s.lead).replace(/\n/g, "<br>") + "</p>";
     }
-    /* 지문 로고 안에 이름·파트·날짜가 다 들어 있으므로 덧붙일 말이 없다. */
+    if (s.big) html += '<div class="wr-big">' + esc(s.big) + "</div>";
+    if (s.unit) html += '<p class="wr-unit">' + esc(s.unit) + "</p>";
     if (s.foot) html += '<p class="wr-foot">' + esc(s.foot) + "</p>";
+    /* 마지막 장의 단추. 맨 뒤에 들어와야 앞의 글을 다 읽은 뒤에 눈에 띈다. */
+    if (s.cta) html += '<a class="btn solid wr-cta" href="' + esc(s.cta.href) + '">'
+      + esc(s.cta.text) + "</a>";
     return '<div class="wr-slide fadein">' + html + "</div>";
   }
 
@@ -750,9 +757,8 @@
      6-2. 페이지 사이 이동
      ====================================================================== */
   const PAGES = [
-    { key: "voice",    n: "01", title: "나의 다짐",      href: "voice.html" },
-    { key: "wrapped",  n: "02", title: "우리의 결산",    href: "wrapped.html" },
-    { key: "mycheers", n: "03", title: "나에게 온 응원", href: "mycheers.html" }
+    { key: "wrapped",  n: "01", title: "우리의 결산",    href: "wrapped.html" },
+    { key: "mycheers", n: "02", title: "나에게 온 응원", href: "mycheers.html" }
   ];
 
   /** 앞뒤 순서를 이름으로 보여주는 하단 이동. 셋을 순환한다. */
@@ -761,10 +767,12 @@
     const i = PAGES.findIndex(p => p.key === key);
     const prev = PAGES[(i - 1 + PAGES.length) % PAGES.length];
     const next = PAGES[(i + 1) % PAGES.length];
+    /* 남은 장이 하나뿐이면 앞뒤가 같은 곳을 가리킨다. 그때는 한쪽만 둔다. */
     el.innerHTML =
-      '<a class="pn-side pn-prev" href="' + prev.href + '">'
-      + '<span class="pn-dir">이전 · ' + prev.n + '</span>'
-      + '<span class="pn-title">' + esc(prev.title) + '</span></a>'
+      (prev === next ? "" :
+        '<a class="pn-side pn-prev" href="' + prev.href + '">'
+        + '<span class="pn-dir">이전 · ' + prev.n + '</span>'
+        + '<span class="pn-title">' + esc(prev.title) + '</span></a>')
       + '<a class="pn-side pn-next" href="' + next.href + '">'
       + '<span class="pn-dir">' + next.n + ' · 다음</span>'
       + '<span class="pn-title">' + esc(next.title) + '</span></a>'
