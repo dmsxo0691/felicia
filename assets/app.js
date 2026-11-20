@@ -439,16 +439,16 @@
     /* num 을 함께 실어두면 화면에서 0 부터 세어 올릴 수 있다. */
     const out = [
       { kick: "Felicia", lead: "우리의 결산", quiet: true, cover: true },
-      { kick: "처음", lead: "우리는 " + s.foundedLabel + "에 처음 만났습니다.", big: nf(s.days), num: s.days, unit: "일 전" },
-      { kick: "연습", lead: "그동안 모여서 연습한 횟수", big: nf(TEAM.practice), num: TEAM.practice, unit: "번" },
-      { kick: "시간", lead: "연습에 쓴 시간을 모두 더하면", big: nf(s.practiceH), num: s.practiceH, unit: "시간" },
-      { kick: "그런데", lead: "그중 실제로 무대에 선 시간은", big: nf(s.stageMin), num: s.stageMin, unit: "분" },
+      { lead: "우리는 " + s.foundedLabel + "에 처음 만났습니다.", big: nf(s.days), num: s.days, unit: "일 전" },
+      { lead: "그동안 모여서 연습한 횟수", big: nf(TEAM.practice), num: TEAM.practice, unit: "번" },
+      { lead: "연습에 쓴 시간을 모두 더하면", big: nf(s.practiceH), num: s.practiceH, unit: "시간" },
+      { lead: "그중 실제로 무대에 선 시간은", big: nf(s.stageMin), num: s.stageMin, unit: "분" },
       /* 100% 에서 깎여 내려와야 얼마나 작은 몫인지가 눈에 보인다. */
-      { kick: "비율", lead: "연습한 시간 대비 무대에 선 시간", big: s.ratio.toFixed(2) + "%", num: s.ratio, from: 100, dec: 2, suffix: "%", quiet: true },
-      { kick: "일곱 명", lead: "일곱 명의 시간을 모두 더하면", big: nf(s.personH), num: s.personH, unit: "시간" },
-      { kick: "레퍼토리", lead: "함께 부른 곡", big: nf(TEAM.songs), num: TEAM.songs, unit: "곡" },
-      { kick: "한 곡", lead: "한 곡을 무대에 올리기까지 평균", big: hoursPerSong.toFixed(1), num: hoursPerSong, dec: 1, unit: "시간" },
-      { kick: "함께 간 곳", lead: "총회와 지파 행사에 함께 지원 간 횟수는 약", big: nf(TEAM.events), num: TEAM.events, unit: "번" }
+      { lead: "연습한 시간 대비 무대에 선 시간", big: s.ratio.toFixed(2) + "%", num: s.ratio, from: 100, dec: 2, suffix: "%", quiet: true },
+      { lead: "일곱 명의 시간을 모두 더하면", big: nf(s.personH), num: s.personH, unit: "시간" },
+      { lead: "함께 부른 곡", big: nf(TEAM.songs), num: TEAM.songs, unit: "곡" },
+      { lead: "한 곡을 무대에 올리기까지 평균", big: hoursPerSong.toFixed(1), num: hoursPerSong, dec: 1, unit: "시간" },
+      { lead: "총회와 지파 행사에 함께 지원 간 횟수는 약", big: nf(TEAM.events), num: TEAM.events, unit: "번" }
     ];
 
     return out;
