@@ -434,44 +434,25 @@
      ====================================================================== */
   function slides() {
     const s = stats();
-    /* 무대 1분마다 연습 몇 분인지. 정확히는 59분, 아래 문장에서는 1시간으로 말한다. */
+    /* 무대 1분마다 연습 몇 분인지. */
     const minPerStageMin = s.stageMin > 0 ? Math.round(s.practiceH * 60 / s.stageMin) : 0;
     const hoursPerSong = TEAM.songs > 0 ? s.practiceH / TEAM.songs : 0;
 
     /* num 을 함께 실어두면 화면에서 0 부터 세어 올릴 수 있다. */
     const out = [
       { kick: "Felicia", lead: "우리의 결산", quiet: true, cover: true },
-      { kick: "처음", lead: "우리는 " + s.foundedLabel + "에 처음 만났습니다.", big: nf(s.days), num: s.days, unit: "일 전", foot: "약 " + s.years.toFixed(1) + "년입니다." },
-      { kick: "연습", lead: "그동안 모여서 연습한 횟수", big: nf(TEAM.practice), num: TEAM.practice, unit: "번", foot: "한 번도 안 빠진 사람은 아무도 없었습니다." },
-      { kick: "시간", lead: "연습에 쓴 시간을 모두 더하면", big: nf(s.practiceH), num: s.practiceH, unit: "시간", foot: "쉬지 않고 이어 붙이면 " + s.practiceDays.toFixed(1) + "일입니다." },
-      { kick: "그런데", lead: "그중 실제로 무대에 선 시간은", big: nf(s.stageMin), num: s.stageMin, unit: "분", foot: "무대 " + TEAM.stages + "번, 한 번에 " + TEAM.smin + "분." },
+      { kick: "처음", lead: "우리는 " + s.foundedLabel + "에 처음 만났습니다.", big: nf(s.days), num: s.days, unit: "일 전" },
+      { kick: "연습", lead: "그동안 모여서 연습한 횟수", big: nf(TEAM.practice), num: TEAM.practice, unit: "번" },
+      { kick: "시간", lead: "연습에 쓴 시간을 모두 더하면", big: nf(s.practiceH), num: s.practiceH, unit: "시간" },
+      { kick: "그런데", lead: "그중 실제로 무대에 선 시간은", big: nf(s.stageMin), num: s.stageMin, unit: "분" },
       /* 100% 에서 깎여 내려와야 얼마나 작은 몫인지가 눈에 보인다. */
-      { kick: "비율", lead: "연습한 시간 대비 무대에 선 시간", big: s.ratio.toFixed(2) + "%", num: s.ratio, from: 100, dec: 2, suffix: "%", foot: "나머지 " + (100 - s.ratio).toFixed(2) + "%는 전부 연습이었습니다.", quiet: true },
-      { kick: "일곱 명", lead: "일곱 명의 시간을 모두 더하면", big: nf(s.personH), num: s.personH, unit: "시간", foot: "전부 주말과 퇴근 후에 할애한 시간입니다." },
-      { kick: "바꿔 말하면", big: nf(minPerStageMin), num: minPerStageMin, unit: "분", foot: "1분의 무대를 위해 1시간을 연습했습니다." },
+      { kick: "비율", lead: "연습한 시간 대비 무대에 선 시간", big: s.ratio.toFixed(2) + "%", num: s.ratio, from: 100, dec: 2, suffix: "%", quiet: true },
+      { kick: "일곱 명", lead: "일곱 명의 시간을 모두 더하면", big: nf(s.personH), num: s.personH, unit: "시간" },
+      { kick: "바꿔 말하면", big: nf(minPerStageMin), num: minPerStageMin, unit: "분" },
       { kick: "레퍼토리", lead: "함께 부른 곡", big: nf(TEAM.songs), num: TEAM.songs, unit: "곡" },
-      { kick: "한 곡", lead: "한 곡을 무대에 올리기까지 평균", big: hoursPerSong.toFixed(1), num: hoursPerSong, dec: 1, unit: "시간", foot: "악보를 처음 펴고 무대에 서기까지 걸린 시간입니다." },
-      { kick: "함께 간 곳", lead: "총회와 지파 행사에 함께 지원 간 횟수는 약", big: nf(TEAM.events), num: TEAM.events, unit: "번", foot: "새벽 이슬같은 우리를 하나님께서 지켜보셨습니다." }
+      { kick: "한 곡", lead: "한 곡을 무대에 올리기까지 평균", big: hoursPerSong.toFixed(1), num: hoursPerSong, dec: 1, unit: "시간" },
+      { kick: "함께 간 곳", lead: "총회와 지파 행사에 함께 지원 간 횟수는 약", big: nf(TEAM.events), num: TEAM.events, unit: "번" }
     ];
-
-    /* 숫자가 끝나고 사람이 나오기 전의 한 박자. 감상을 적지 않고 질문만 둔다.
-       뒤따르는 일곱 장이 그대로 답이 된다. */
-    /* 팀 이름이 로고 워드마크처럼 먼저 서고, 한 박자 뒤에 질문이 붙는다.
-       두 줄을 다른 글꼴로 두어 이름과 물음이 섞이지 않게 한다. */
-    out.push({
-      kick: "", quiet: true, cover: true, hold: 2200,
-      lines: [
-        { t: "FELICIA", cls: "wr-mark" },
-        { t: "행복했나요?", cls: "wr-ask", gap: 1.4 }
-      ]
-    });
-
-    /* 닫는 장. 돌아봤으니 이제 앞을 본다. 마지막 장에서는 재생이 멈추므로
-       단추가 화면에 그대로 남는다 — 각자 폰으로 눌러 다짐을 남기러 간다. */
-    out.push({
-      kick: "Felicia", quiet: true, cover: true, hold: 2600,
-      cta: { text: "앞으로의 다짐", href: "voice.html" }
-    });
 
     return out;
   }
@@ -532,20 +513,11 @@
 
   /* 슬라이드 뷰어 하나를 붙인다. 반환된 객체로 넘기고 되돌린다. */
 
-  /* 한 장을 얼마나 보여줄지. 숫자가 올라가는 시간과 읽을 글자 수를 더한다. */
-  function slideMs(s) {
-    let d = 4400;
-    if (s.num != null) d += 900;           // 큰 숫자는 한 박자 머물게
-    if (s.cover) d += 600;
-    const lineText = s.lines
-      ? s.lines.map(l => (typeof l === "string" ? l : l.t)).join("")
-      : (s.lead || "");
-    d += Math.min(3000, (lineText + (s.unit || "") + (s.foot || "")).length * 56);
-    /* 줄을 나눠 띄우는 장은 마지막 줄이 다 들어올 때까지 기다려야 한다. */
-    if (s.lines) {
-      d += s.lines.slice(1).reduce((a, l) => a + (typeof l === "string" ? 1.65 : (l.gap || 1.65)) * 1000, 0);
-    }
-    return d + (s.hold || 0);
+  /* 한 장을 얼마나 보여줄지. 표지는 1초, 나머지는 모두 2.5초.
+     나가며 흐려지는 0.38초도 이 안에 든다. */
+  const COVER_MS = 1000, SLIDE_MS = 2500;
+  function slideMs(s, i) {
+    return i === 0 ? COVER_MS : SLIDE_MS;
   }
 
   /**
@@ -576,7 +548,7 @@
       if (nextEl) nextEl.textContent = idx === arr.length - 1 ? "처음으로" : "다음";
       if (opts.onSlide) opts.onSlide(idx, arr.length);
 
-      runBar(slideMs(s));
+      runBar(slideMs(s, idx));
     }
 
     /* 남은 시간 막대. 애니메이션을 다시 시작하려면 한 번 지웠다 걸어야 한다. */
@@ -600,11 +572,11 @@
     function schedule() {
       clearTimers();
       if (!playing) return;
-      const ms = slideMs(arr[idx]);
+      const ms = slideMs(arr[idx], idx);
       timer = setTimeout(() => {
         if (idx >= arr.length - 1) { setPlaying(false); return; }   // 끝에서 멈춘다
         leaveThen(() => { idx++; render(); schedule(); });
-      }, Math.max(1200, ms - 380));
+      }, Math.max(0, ms - 380));
     }
 
     function go(d) {
@@ -621,7 +593,7 @@
       }
       if (v) {
         if (idx >= arr.length - 1) { idx = 0; render(); }
-        else runBar(slideMs(arr[idx]));
+        else runBar(slideMs(arr[idx], idx));
         schedule();
       } else {
         clearTimers();
