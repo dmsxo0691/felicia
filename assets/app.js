@@ -9,13 +9,14 @@
   const TEAM = {
     name: "FELICIA",
     founded: "2024-04-22",   // 결성
-    trip: "2026-09-23",      // 이번 여행
-    practice: 256,           // 총 연습 횟수
+    trip: "2026-09-23",      // 1박 2일 여행
+    asof: "2026-11-20",      // 결산 기준일 (아래 횟수는 이날까지)
+    practice: 273,           // 총 연습 횟수
     phours: 2.5,             // 1회 연습 시간
-    stages: 26,              // 무대에 선 횟수
+    stages: 28,              // 무대에 선 횟수
     smin: 25,                // 1회 무대 길이(분)
-    songs: 46,               // 함께 부른 곡
-    events: 20,              // 함께 지원 간 총회 및 지파 행사
+    songs: 49,               // 함께 부른 곡
+    events: 21,              // 함께 지원 간 총회 및 지파 행사
     members: [
       { id: "soyeon",  name: "김소연",     part: "Soprano" },
       { id: "jeongeun",name: "서정은",     part: "Soprano" },
@@ -42,7 +43,7 @@
      ====================================================================== */
   function stats() {
     const fd = new Date(TEAM.founded + "T00:00:00");
-    const td = new Date(TEAM.trip + "T00:00:00");
+    const td = new Date((TEAM.asof || TEAM.trip) + "T00:00:00");
     const days = Math.max(0, Math.round((td - fd) / 86400000));
     const practiceH = Math.round(TEAM.practice * TEAM.phours);
     const stageMin = Math.round(TEAM.stages * TEAM.smin);
