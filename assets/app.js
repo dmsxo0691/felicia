@@ -434,8 +434,6 @@
      ====================================================================== */
   function slides() {
     const s = stats();
-    /* 무대 1분마다 연습 몇 분인지. */
-    const minPerStageMin = s.stageMin > 0 ? Math.round(s.practiceH * 60 / s.stageMin) : 0;
     const hoursPerSong = TEAM.songs > 0 ? s.practiceH / TEAM.songs : 0;
 
     /* num 을 함께 실어두면 화면에서 0 부터 세어 올릴 수 있다. */
@@ -448,7 +446,6 @@
       /* 100% 에서 깎여 내려와야 얼마나 작은 몫인지가 눈에 보인다. */
       { kick: "비율", lead: "연습한 시간 대비 무대에 선 시간", big: s.ratio.toFixed(2) + "%", num: s.ratio, from: 100, dec: 2, suffix: "%", quiet: true },
       { kick: "일곱 명", lead: "일곱 명의 시간을 모두 더하면", big: nf(s.personH), num: s.personH, unit: "시간" },
-      { kick: "바꿔 말하면", big: nf(minPerStageMin), num: minPerStageMin, unit: "분" },
       { kick: "레퍼토리", lead: "함께 부른 곡", big: nf(TEAM.songs), num: TEAM.songs, unit: "곡" },
       { kick: "한 곡", lead: "한 곡을 무대에 올리기까지 평균", big: hoursPerSong.toFixed(1), num: hoursPerSong, dec: 1, unit: "시간" },
       { kick: "함께 간 곳", lead: "총회와 지파 행사에 함께 지원 간 횟수는 약", big: nf(TEAM.events), num: TEAM.events, unit: "번" }
